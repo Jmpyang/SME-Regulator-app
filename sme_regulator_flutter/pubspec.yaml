@@ -1,0 +1,32 @@
+name: sme_regulator_flutter
+description: Mobile application for SME Compliance Navigator.
+version: 1.0.0+1
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.4.0
+  provider: ^6.1.1
+  flutter_secure_storage: ^9.0.0
+  json_annotation: ^4.8.1
+  shared_preferences: ^2.2.2
+  intl: ^0.19.0
+  file_picker: ^6.1.1
+  #file_picker_linux: ^6.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.8
+  json_serializable: ^6.7.1
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  # To add assets to your application, add an assets section, like this:
+  # assets:
+  #   - assets/images/
