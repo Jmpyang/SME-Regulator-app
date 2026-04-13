@@ -1,24 +1,18 @@
 import '../models/reminder_model.dart';
-import '../services/reminder_service.dart';
+import '../services/reminders_service.dart';
 
 class ReminderRepository {
-  final ReminderService _reminderService;
+  ReminderRepository(this._remindersService);
 
-  ReminderRepository(this._reminderService);
+  final RemindersService _remindersService;
 
-  Future<List<ReminderModel>> getReminders() async {
-    return await _reminderService.fetchReminders();
-  }
+  Future<List<ReminderModel>> getReminders() => _remindersService.fetchReminders();
 
-  Future<ReminderModel> createReminder(Map<String, dynamic> data) async {
-    return await _reminderService.createReminder(data);
-  }
+  Future<ReminderModel> createReminder(Map<String, dynamic> data) =>
+      _remindersService.createReminder(data);
 
-  Future<ReminderModel> updateReminder(String id, Map<String, dynamic> data) async {
-    return await _reminderService.updateReminder(id, data);
-  }
+  Future<ReminderModel> updateReminder(String id, Map<String, dynamic> data) =>
+      _remindersService.updateReminder(id, data);
 
-  Future<void> deleteReminder(String id) async {
-    return await _reminderService.deleteReminder(id);
-  }
+  Future<void> deleteReminder(String id) => _remindersService.deleteReminder(id);
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/document_model.dart';
 import '../repositories/document_repository.dart';
+import '../utils/dio_errors.dart';
 
 class DocumentProvider with ChangeNotifier {
   final DocumentRepository _repository;
@@ -27,7 +28,7 @@ class DocumentProvider with ChangeNotifier {
       _documents = await _repository.getDocuments();
       _error = null;
     } catch (e) {
-      _error = e.toString();
+      _error = dioErrorMessage(e);
     } finally {
       _setLoading(false);
     }
@@ -41,7 +42,7 @@ class DocumentProvider with ChangeNotifier {
       _error = null;
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = dioErrorMessage(e);
       return false;
     } finally {
       _setLoading(false);

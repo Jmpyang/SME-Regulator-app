@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../models/user_model.dart';
 import '../repositories/auth_repository.dart';
-import '../utils/secure_storage_helper.dart';
+import '../utils/dio_errors.dart';
 
 class AuthProvider with ChangeNotifier {
+  AuthProvider(this._repository);
+
   final AuthRepository _repository;
-  
+
   UserModel? _user;
   bool _isLoading = false;
   String? _error;
-
-  AuthProvider(this._repository);
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
@@ -29,15 +29,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> checkAuthStatus() async {
-    final token = await SecureStorageHelper.getToken();
-    if (token == null || token.isEmpty) return false;
-    
-    // DEVELOPMENT MOCK (bypassing backend for dev)
-    if (token == 'mock_development_token') {
-      _user = UserModel(id: 'mock_id', email: 'admin@test.com', name: 'Mock Admin', phone: '0700000000', role: 'admin');
-      _setError(null);
-      return true;
-    }
+    if (!_repository.hasSavedToken) return false;
 
     try {
       _setLoading(true);
@@ -53,27 +45,16 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> login(String email, String password) async {
-    // DEVELOPMENT MOCK (bypassing backend for dev)
-    if (email == 'admin@test.com' && password == 'password') {
-      _setLoading(true);
-      await Future.delayed(const Duration(seconds: 1)); // Simulate network request
-      _user = UserModel(id: 'mock_id', email: email, name: 'Mock Admin', phone: '0700000000', role: 'admin');
-      _setError(null);
-      await SecureStorageHelper.saveToken('mock_development_token');
-      _setLoading(false);
-      return true;
-    }
-
     try {
       _setLoading(true);
       _user = await _repository.login(email, password);
       _setError(null);
       return true;
     } on DioException catch (e) {
-      _setError(e.response?.data['message'] ?? 'Login failed');
+      _setError(dioErrorMessage(e));
       return false;
     } catch (e) {
-      _setError(e.toString());
+      _setError(dioErrorMessage(e));
       return false;
     } finally {
       _setLoading(false);
@@ -87,10 +68,10 @@ class AuthProvider with ChangeNotifier {
       _setError(null);
       return true;
     } on DioException catch (e) {
-      _setError(e.response?.data['message'] ?? 'Registration failed');
+      _setError(dioErrorMessage(e));
       return false;
     } catch (e) {
-      _setError(e.toString());
+      _setError(dioErrorMessage(e));
       return false;
     } finally {
       _setLoading(false);
@@ -105,10 +86,10 @@ class AuthProvider with ChangeNotifier {
       _setError(null);
       return true;
     } on DioException catch (e) {
-      _setError(e.response?.data['message'] ?? 'OTP verification failed');
+      _setError(dioErrorMessage(e));
       return false;
     } catch (e) {
-      _setError(e.toString());
+      _setError(dioErrorMessage(e));
       return false;
     } finally {
       _setLoading(false);
@@ -116,7 +97,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await SecureStorageHelper.deleteToken();
+    await _repository.logout();
     _user = null;
     notifyListeners();
   }

@@ -9,6 +9,7 @@ import '../screens/dashboard_screen.dart';
 import '../screens/document_vault_screen.dart';
 import '../screens/permits_screen.dart';
 import '../screens/reminders_screen.dart';
+import '../screens/profile_screen.dart';
 
 class AppRoutes {
   static const landing = '/';
@@ -21,6 +22,7 @@ class AppRoutes {
   static const documentVault = '/document-vault';
   static const permits = '/permits';
   static const reminders = '/reminders';
+  static const profile = '/profile';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -34,6 +36,7 @@ class AppRoutes {
       documentVault: (context) => const DocumentVaultScreen(),
       permits: (context) => const PermitsScreen(),
       reminders: (context) => const RemindersScreen(),
+      profile: (context) => const ProfileScreen(),
     };
   }
 }

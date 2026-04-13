@@ -29,4 +29,9 @@ class AuthRepository {
   Future<UserModel> getCurrentUser() async {
     return await _authService.getCurrentUser();
   }
+
+  bool get hasSavedToken => _authService.hasToken;
+
+  Future<void> logout() => _authService.logout();
 }
+
