@@ -1,31 +1,34 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../models/dashboard_summary_model.dart';
-import '../services/dashboard_service.dart';
-import '../utils/dio_errors.dart';
+import '../services/api_service.dart';
+import '../providers/loading_provider.dart';
 
 class DashboardProvider with ChangeNotifier {
-  final DashboardService _service;
+  final ApiService _apiService;
+  final LoadingProvider _loadingProvider;
   DashboardSummaryModel? _summary;
-  bool _isLoading = false;
   String? _error;
 
-  DashboardProvider(this._service);
+  DashboardProvider(this._apiService, this._loadingProvider);
 
   DashboardSummaryModel? get summary => _summary;
-  bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get isLoading => _loadingProvider.isLoading('dashboard');
 
   Future<void> fetchSummary() async {
-    _isLoading = true;
     _error = null;
+    _loadingProvider.setLoading('dashboard', true, message: 'Loading dashboard...');
     notifyListeners();
 
     try {
-      _summary = await _service.fetchDashboardSummary();
+      final response = await _apiService.get('/dashboard/summary');
+      final responseData = json.decode(response.body);
+      _summary = DashboardSummaryModel.fromJson(responseData);
     } catch (e) {
-      _error = dioErrorMessage(e);
+      _error = e.toString();
     } finally {
-      _isLoading = false;
+      _loadingProvider.setLoading('dashboard', false);
       notifyListeners();
     }
   }

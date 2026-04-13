@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/theme_notifier.dart';
 import 'routes/app_routes.dart';
+import 'utils/performance_utils.dart';
 
 class SmeRegulatorApp extends StatefulWidget {
   const SmeRegulatorApp({super.key});
@@ -72,6 +73,15 @@ class _SmeRegulatorAppState extends State<SmeRegulatorApp> {
       themeMode: theme.themeMode,
       initialRoute: AppRoutes.landing,
       routes: AppRoutes.getRoutes(),
+      scrollBehavior: const OptimizedScrollBehavior(),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(1.0), // Prevents text scaling issues
+          ),
+          child: child!,
+        );
+      },
     );
   }
 }

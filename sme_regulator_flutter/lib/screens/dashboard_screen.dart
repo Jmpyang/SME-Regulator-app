@@ -5,6 +5,7 @@ import '../providers/dashboard_provider.dart';
 import '../routes/app_routes.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/loading_overlay.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -25,31 +26,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().user;
-    final displayName = (user?.name.trim().isNotEmpty ?? false)
-        ? user!.name.trim()
-        : (user?.email.trim().isNotEmpty ?? false)
-            ? user!.email.trim()
-            : 'User';
-    final email = user?.email.trim().isNotEmpty ?? false ? user!.email.trim() : null;
     final dashboardProvider = context.watch<DashboardProvider>();
     final summary = dashboardProvider.summary;
     final bool isSmallScreen = MediaQuery.sizeOf(context).width < 600;
+
+    final displayName = user?.name.isNotEmpty == true ? user!.name : 
+                        user?.email.isNotEmpty == true ? user!.email : 'User';
+    final email = user?.email.isNotEmpty == true ? user!.email : null;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       appBar: const CustomAppBar(title: 'Dashboard'),
       drawer: const AppDrawer(),
-      body: dashboardProvider.isLoading && summary == null
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => context.read<DashboardProvider>().fetchSummary(),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+      body: LoadingOverlay(
+        loadingKey: 'dashboard',
+        child: RefreshIndicator(
+          onRefresh: () => context.read<DashboardProvider>().fetchSummary(),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                       // Title Row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -333,8 +332,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                 ),
-              ),
             ),
+          ),
+        ),
     );
   }
 

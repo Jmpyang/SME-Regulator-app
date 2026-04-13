@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../routes/app_routes.dart';
+import '../providers/theme_notifier.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -85,8 +87,34 @@ class AppDrawer extends StatelessWidget {
             route: AppRoutes.profile,
             currentRoute: currentRoute,
           ),
+          const Divider(),
+          _buildThemeToggle(context),
         ],
       ),
+    );
+  }
+
+  Widget _buildThemeToggle(BuildContext context) {
+    return Consumer<ThemeNotifier>(
+      builder: (context, themeNotifier, child) {
+        return ListTile(
+          leading: Icon(
+            themeNotifier.isDark ? Icons.dark_mode : Icons.light_mode,
+            color: Colors.grey.shade600,
+          ),
+          title: Text(
+            themeNotifier.isDark ? 'Light Mode' : 'Dark Mode',
+            style: TextStyle(
+              color: Colors.grey.shade800,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+          onTap: () {
+            themeNotifier.toggle();
+            Navigator.pop(context);
+          },
+        );
+      },
     );
   }
 

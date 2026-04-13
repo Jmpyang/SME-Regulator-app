@@ -45,19 +45,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
-      leading: canPop
-          ? IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
-              tooltip: 'Back',
+      leading: hasDrawer
+          ? Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+                tooltip: 'Menu',
+              ),
             )
-          : hasDrawer
-              ? Builder(
-                  builder: (context) => IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                    tooltip: 'Menu',
-                  ),
+          : canPop
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.pushReplacementNamed(context, AppRoutes.dashboard),
+                  tooltip: 'Back to Dashboard',
                 )
               : null,
       title: Text(
@@ -75,9 +75,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           tooltip: 'Notifications',
           onPressed: () {},
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Container(
+        IconButton(
+          icon: Container(
             width: 36,
             height: 36,
             decoration: const BoxDecoration(
@@ -95,6 +94,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
+          tooltip: 'Profile',
+          onPressed: () => Navigator.pushNamed(context, AppRoutes.profile),
         ),
         IconButton(
           icon: const Icon(Icons.logout),

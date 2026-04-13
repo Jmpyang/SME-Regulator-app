@@ -10,8 +10,10 @@ import 'providers/dashboard_provider.dart';
 import 'providers/profile_provider.dart';
 import 'providers/knowledge_provider.dart';
 import 'providers/theme_notifier.dart';
+import 'providers/loading_provider.dart';
 
 import 'services/api_client.dart';
+import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/document_service.dart';
 import 'services/reminders_service.dart';
@@ -28,13 +30,17 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
+  final apiService = ApiService();
+  await apiService.init();
+
+  final loadingProvider = LoadingProvider();
+  
   final apiClient = ApiClient(prefs);
   final dio = apiClient.dio;
 
   final authService = AuthService(dio, TokenStorage(prefs));
   final documentService = DocumentService(dio);
   final remindersService = RemindersService(dio);
-  final dashboardService = DashboardService(dio);
   final profileService = ProfileService(dio);
   final knowledgeService = KnowledgeService(dio);
 
@@ -48,10 +54,11 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider(authRepository)),
         ChangeNotifierProvider(create: (_) => DocumentProvider(documentRepository)),
         ChangeNotifierProvider(create: (_) => ReminderProvider(reminderRepository)),
-        ChangeNotifierProvider(create: (_) => DashboardProvider(dashboardService)),
+        ChangeNotifierProvider(create: (_) => DashboardProvider(apiService, loadingProvider)),
         ChangeNotifierProvider(create: (_) => ProfileProvider(profileService)),
         ChangeNotifierProvider(create: (_) => KnowledgeProvider(knowledgeService)),
         ChangeNotifierProvider(create: (_) => ThemeNotifier(prefs)),
+        ChangeNotifierProvider.value(value: loadingProvider),
       ],
       child: const SmeRegulatorApp(),
     ),
