@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
 import '../services/profile_service.dart';
-import '../utils/dio_errors.dart';
+import '../utils/error_handler.dart';
 
 class ProfileProvider with ChangeNotifier {
   final ProfileService _service;
@@ -23,7 +23,7 @@ class ProfileProvider with ChangeNotifier {
     try {
       _profile = await _service.getProfile();
     } catch (e) {
-      _error = dioErrorMessage(e);
+      _error = getErrorMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -41,7 +41,7 @@ class ProfileProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = dioErrorMessage(e);
+      _error = getErrorMessage(e);
       _isLoading = false;
       notifyListeners();
       return false;

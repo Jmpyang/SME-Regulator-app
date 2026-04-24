@@ -1,15 +1,10 @@
-import 'package:dio/dio.dart';
-
 import '../models/dashboard_summary_model.dart';
-import '../utils/api_parsers.dart';
+import 'base_service.dart';
 
-class DashboardService {
-  DashboardService(this._dio);
-
-  final Dio _dio;
+class DashboardService extends BaseService {
+  DashboardService(super.dio);
 
   Future<DashboardSummaryModel> fetchDashboardSummary() async {
-    final response = await _dio.get('/api/dashboard/summary');
-    return DashboardSummaryModel.fromJson(decodeMap(response.data));
+    return get('/api/dashboard/summary', (data) => DashboardSummaryModel.fromJson(data));
   }
 }

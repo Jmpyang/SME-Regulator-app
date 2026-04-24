@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../models/user_model.dart';
 import '../repositories/auth_repository.dart';
-import '../utils/dio_errors.dart';
+import '../utils/error_handler.dart';
 
 class AuthProvider with ChangeNotifier {
   AuthProvider(this._repository);
@@ -51,10 +51,10 @@ class AuthProvider with ChangeNotifier {
       _setError(null);
       return true;
     } on DioException catch (e) {
-      _setError(dioErrorMessage(e));
+      _error = getErrorMessage(e);
       return false;
     } catch (e) {
-      _setError(dioErrorMessage(e));
+      _error = getErrorMessage(e);
       return false;
     } finally {
       _setLoading(false);
@@ -68,10 +68,10 @@ class AuthProvider with ChangeNotifier {
       _setError(null);
       return true;
     } on DioException catch (e) {
-      _setError(dioErrorMessage(e));
+      _error = getErrorMessage(e);
       return false;
     } catch (e) {
-      _setError(dioErrorMessage(e));
+      _error = getErrorMessage(e);
       return false;
     } finally {
       _setLoading(false);
@@ -86,10 +86,10 @@ class AuthProvider with ChangeNotifier {
       _setError(null);
       return true;
     } on DioException catch (e) {
-      _setError(dioErrorMessage(e));
+      _error = getErrorMessage(e);
       return false;
     } catch (e) {
-      _setError(dioErrorMessage(e));
+      _error = getErrorMessage(e);
       return false;
     } finally {
       _setLoading(false);

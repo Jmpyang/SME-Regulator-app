@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/reminder_model.dart';
 import '../repositories/reminder_repository.dart';
-import '../utils/dio_errors.dart';
+import '../utils/error_handler.dart';
 
 class ReminderProvider with ChangeNotifier {
   final ReminderRepository _repository;
@@ -27,7 +27,7 @@ class ReminderProvider with ChangeNotifier {
       _reminders = await _repository.getReminders();
       _error = null;
     } catch (e) {
-      _error = dioErrorMessage(e);
+      _error = getErrorMessage(e);
     } finally {
       _setLoading(false);
     }
@@ -41,7 +41,7 @@ class ReminderProvider with ChangeNotifier {
       _error = null;
       return true;
     } catch (e) {
-      _error = dioErrorMessage(e);
+      _error = getErrorMessage(e);
       return false;
     } finally {
       _setLoading(false);
@@ -59,7 +59,7 @@ class ReminderProvider with ChangeNotifier {
       _error = null;
       return true;
     } catch (e) {
-      _error = dioErrorMessage(e);
+      _error = getErrorMessage(e);
       return false;
     } finally {
       _setLoading(false);

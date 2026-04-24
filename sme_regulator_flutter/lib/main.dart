@@ -47,6 +47,7 @@ void main() async {
   final authRepository = AuthRepository(authService);
   final documentRepository = DocumentRepository(documentService);
   final reminderRepository = ReminderRepository(remindersService);
+  final dashboardService = DashboardService(dio);
 
   runApp(
     MultiProvider(
@@ -54,7 +55,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider(authRepository)),
         ChangeNotifierProvider(create: (_) => DocumentProvider(documentRepository)),
         ChangeNotifierProvider(create: (_) => ReminderProvider(reminderRepository)),
-        ChangeNotifierProvider(create: (_) => DashboardProvider(apiService, loadingProvider)),
+        ChangeNotifierProvider(create: (_) => DashboardProvider(dashboardService, loadingProvider)),
         ChangeNotifierProvider(create: (_) => ProfileProvider(profileService)),
         ChangeNotifierProvider(create: (_) => KnowledgeProvider(knowledgeService)),
         ChangeNotifierProvider(create: (_) => ThemeNotifier(prefs)),

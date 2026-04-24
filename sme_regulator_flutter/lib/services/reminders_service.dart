@@ -1,29 +1,23 @@
-import 'package:dio/dio.dart';
-
 import '../models/reminder_model.dart';
 import '../utils/api_parsers.dart';
+import 'base_service.dart';
 
-class RemindersService {
-  RemindersService(this._dio);
-
-  final Dio _dio;
+class RemindersService extends BaseService {
+  RemindersService(super.dio);
 
   Future<List<ReminderModel>> fetchReminders() async {
-    final response = await _dio.get('/reminders');
-    return decodeList(response.data).map((e) => parseReminder(e)).toList();
+    return getList('/api/reminders', parseReminder);
   }
 
   Future<ReminderModel> createReminder(Map<String, dynamic> data) async {
-    final response = await _dio.post<dynamic>('/reminders', data: data);
-    return parseReminder(decodeMap(response.data));
+    return post('/api/reminders', data, parseReminder);
   }
 
   Future<ReminderModel> updateReminder(String id, Map<String, dynamic> data) async {
-    final response = await _dio.put<dynamic>('/api/reminders/$id', data: data);
-    return parseReminder(decodeMap(response.data));
+    return put('/api/reminders/$id', data, parseReminder);
   }
 
   Future<void> deleteReminder(String id) async {
-    await _dio.delete('/reminders/$id');
+    await delete('/api/reminders/$id');
   }
 }

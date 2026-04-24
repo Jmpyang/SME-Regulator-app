@@ -1,16 +1,16 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../models/dashboard_summary_model.dart';
-import '../services/api_service.dart';
+import '../services/dashboard_service.dart';
 import '../providers/loading_provider.dart';
+import '../utils/error_handler.dart';
 
 class DashboardProvider with ChangeNotifier {
-  final ApiService _apiService;
+  final DashboardService _dashboardService;
   final LoadingProvider _loadingProvider;
   DashboardSummaryModel? _summary;
   String? _error;
 
-  DashboardProvider(this._apiService, this._loadingProvider);
+  DashboardProvider(this._dashboardService, this._loadingProvider);
 
   DashboardSummaryModel? get summary => _summary;
   String? get error => _error;
@@ -22,11 +22,9 @@ class DashboardProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiService.get('/dashboard/summary');
-      final responseData = json.decode(response.body);
-      _summary = DashboardSummaryModel.fromJson(responseData);
+      _summary = await _dashboardService.fetchDashboardSummary();
     } catch (e) {
-      _error = e.toString();
+      _error = getErrorMessage(e);
     } finally {
       _loadingProvider.setLoading('dashboard', false);
       notifyListeners();

@@ -73,7 +73,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.notifications_none),
           tooltip: 'Notifications',
-          onPressed: () {},
+          onPressed: () => Navigator.pushNamed(context, AppRoutes.reminders),
         ),
         IconButton(
           icon: Container(
