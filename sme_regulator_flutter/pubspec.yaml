@@ -14,8 +14,12 @@ dependencies:
   provider: ^6.1.1
   json_annotation: ^4.8.1
   shared_preferences: ^2.2.2
+  flutter_secure_storage: ^9.0.0
   intl: ^0.19.0
   file_picker: ^6.1.1
+  cached_network_image: ^3.3.0
+  google_sign_in: ^6.2.1
+  shimmer: ^3.0.0
   #file_picker_linux: ^6.0.1
 
 dev_dependencies:

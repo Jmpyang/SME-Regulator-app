@@ -32,6 +32,16 @@ class AuthRepository {
 
   bool get hasSavedToken => _authService.hasToken;
 
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    // Add changePassword implementation to AuthService
+    await _authService.changePassword(currentPassword, newPassword);
+  }
+
+  Future<void> loginWithGoogle(String idToken) async {
+    // Add loginWithGoogle implementation to AuthService
+    await _authService.loginWithGoogle(idToken);
+  }
+
   Future<void> logout() => _authService.logout();
 }
 

@@ -6,6 +6,7 @@ import '../routes/app_routes.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/loading_overlay.dart';
+import '../core/theme.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -109,25 +110,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 24),
                       
-                      // Error Banner
+                      // Error Banner (should be removed once data type mismatch is fixed)
                       if (dashboardProvider.error != null)
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFEF2F2),
-                            border: Border.all(color: const Color(0xFFFCA5A5)),
-                            borderRadius: BorderRadius.circular(8),
+                            color: Theme.of(context).colorScheme.errorContainer,
+                            border: Border.all(color: Theme.of(context).colorScheme.error),
+                            borderRadius: AppTheme.kCardRadius,
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 20),
+                              Icon(Icons.warning_amber_rounded, color: Theme.of(context).colorScheme.onError, size: 20),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   dashboardProvider.error ?? 'Failed to sync dashboard data.',
-                                  style: const TextStyle(
-                                    color: Color(0xFFDC2626),
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onError,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                   ),
@@ -151,7 +152,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             'COMPLIANCE SCORE',
                             '${summary?.complianceScore ?? 0}%',
                             Icons.shield_outlined,
-                            const Color(0xFFE11D48), // Red
+                            _getComplianceScoreColor((summary?.complianceScore ?? 0).toDouble()), // Color-coded based on score
                             const Color(0xFF4F46E5), // Indigo icon bg
                           ),
                           _buildInfoCard(
@@ -342,65 +343,82 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String title,
     String value,
     IconData icon,
-    Color valueColor,
-    Color iconColor,
+    Color color,
+    Color iconBg,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: AppTheme.kCardRadius,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Flexible(
-            child: Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      color: valueColor,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: iconColor, size: 20),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    // Add progress indicator for compliance score
+                    if (title == 'COMPLIANCE SCORE')
+                      Column(
+                        children: [
+                          const SizedBox(height: 8),
+                          LinearProgressIndicator(
+                            value: (double.tryParse(value.replaceAll('%', '')) ?? 0.0) / 100,
+                            backgroundColor: Colors.grey.shade300,
+                            valueColor: AlwaysStoppedAnimation<Color>(_getComplianceScoreColor(double.tryParse(value.replaceAll('%', '')) ?? 0.0)),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  Color _getComplianceScoreColor(double score) {
+    if (score <= 40) return Colors.red;
+    if (score <= 70) return Colors.orange;
+    return Colors.green;
   }
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
 
 import '../models/document_model.dart';
 import '../providers/document_provider.dart';
 import '../widgets/custom_app_bar.dart';
+import '../core/constants.dart';
 
 /// Prefer permit-like [DocumentModel.type] values; if none match, show full vault list.
 List<DocumentModel> documentsForPermitsView(List<DocumentModel> all) {
@@ -33,15 +33,29 @@ class _PermitsScreenState extends State<PermitsScreen> {
   }
 
   Future<void> _uploadPermit() async {
-    final result = await FilePicker.platform.pickFiles();
-    if (result == null || !mounted) return;
-    final file = result.files.first;
-    final title = file.name;
-    final ok = await context.read<DocumentProvider>().uploadDocument(file, title);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'Permit uploaded' : (context.read<DocumentProvider>().error ?? 'Upload failed'))),
+    // Show dialog for title and document type input
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => _UploadDialog(),
     );
+    
+    if (result == null || !mounted) return;
+    
+    try {
+      await context.read<DocumentProvider>().uploadDocument(
+        title: result['title']!,
+        documentType: result['documentType']!,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Permit uploaded successfully')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload failed: ${e.toString()}')),
+      );
+    }
   }
 
   @override
@@ -390,5 +404,83 @@ class _PermitsScreenState extends State<PermitsScreen> {
         letterSpacing: 1.0,
       ),
     );
+  }
+}
+
+class _UploadDialog extends StatefulWidget {
+  @override
+  __UploadDialogState createState() => __UploadDialogState();
+}
+
+class __UploadDialogState extends State<_UploadDialog> {
+  final _titleController = TextEditingController();
+  String _selectedDocumentType = 'Permit';
+  
+  final List<String> _documentTypes = [
+    'Permit',
+    'License',
+    'Certificate',
+    'Registration',
+    ...kBusinessTypes,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Upload Document'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _titleController,
+            decoration: const InputDecoration(
+              labelText: 'Document Title',
+              hintText: 'Enter document title',
+            ),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: _selectedDocumentType,
+            decoration: const InputDecoration(
+              labelText: 'Document Type',
+            ),
+            items: _documentTypes
+                .map((type) => DropdownMenuItem(
+                      value: type,
+                      child: Text(type),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedDocumentType = value!;
+              });
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_titleController.text.isNotEmpty) {
+              Navigator.of(context).pop({
+                'title': _titleController.text,
+                'documentType': _selectedDocumentType,
+              });
+            }
+          },
+          child: const Text('Upload'),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
   }
 }

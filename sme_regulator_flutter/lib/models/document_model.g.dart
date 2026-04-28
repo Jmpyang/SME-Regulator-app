@@ -13,6 +13,7 @@ DocumentModel _$DocumentModelFromJson(Map<String, dynamic> json) =>
       fileUrl: json['file_url'] as String,
       type: json['type'] as String,
       uploadedAt: DateTime.parse(json['uploaded_at'] as String),
+      status: json['status'] as String,
     );
 
 Map<String, dynamic> _$DocumentModelToJson(DocumentModel instance) =>
@@ -22,4 +23,5 @@ Map<String, dynamic> _$DocumentModelToJson(DocumentModel instance) =>
       'file_url': instance.fileUrl,
       'type': instance.type,
       'uploaded_at': instance.uploadedAt.toIso8601String(),
+      'status': instance.status,
     };

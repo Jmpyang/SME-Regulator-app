@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:dio/dio.dart';
 import '../providers/document_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/dashed_border_painter.dart';
 import '../widgets/app_drawer.dart';
+import '../core/theme.dart';
+import '../utils/error_handler.dart';
 
 class DocumentVaultScreen extends StatefulWidget {
   const DocumentVaultScreen({super.key});
@@ -19,22 +22,25 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DocumentProvider>().loadDocuments();
+      context.read<DocumentProvider>().startSync();
     });
   }
 
-  void _uploadDocument() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      if (mounted) {
-        PlatformFile file = result.files.first;
-        final success = await context.read<DocumentProvider>().uploadDocument(file, file.name);
-        if (success && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Upload successful')));
-        } else if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Upload failed')));
-        }
-      }
-    }
+  @override
+  void dispose() {
+    context.read<DocumentProvider>().stopSync();
+    super.dispose();
+  }
+
+  void _showUploadBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _UploadBottomSheet(),
+    );
   }
 
   @override
@@ -43,55 +49,88 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
     final documents = provider.documents;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: const CustomAppBar(title: 'Document Vault'),
       drawer: const AppDrawer(),
-      body: provider.isLoading && documents.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Page Title Area
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      body: RefreshIndicator(
+        onRefresh: () async => await context.read<DocumentProvider>().loadDocuments(),
+        child: provider.isLoading && documents.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : provider.error != null && documents.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Document Vault',
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF111827),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Encrypted storage for your regulatory certificates.',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.refresh, color: Colors.grey.shade600),
-                          onPressed: () {
-                            context.read<DocumentProvider>().loadDocuments();
-                          },
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.error,
+                            ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => context.read<DocumentProvider>().loadDocuments(),
+                          child: const Text('Retry'),
                         ),
                       ],
                     ),
+                  )
+                : SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      // Upload Card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: InkWell(
+                          onTap: _showUploadBottomSheet,
+                          borderRadius: BorderRadius.circular(12),
+                          child: CustomPaint(
+                            painter: DashedBorderPainter(
+                              color: Colors.grey.shade300,
+                              strokeWidth: 1.5,
+                              dashWidth: 6,
+                              dashSpace: 4,
+                              borderRadius: 12,
+                            ),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(32),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.cloud_upload_outlined,
+                                    size: 48,
+                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Tap to upload documents',
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Supported formats: PDF, PNG, JPG',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 32),
 
                     if (provider.error != null)
@@ -100,13 +139,13 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                         padding: const EdgeInsets.all(16),
                         margin: const EdgeInsets.only(bottom: 24),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
-                          border: Border.all(color: const Color(0xFFFCA5A5)),
-                          borderRadius: BorderRadius.circular(8),
+                          color: Theme.of(context).colorScheme.errorContainer,
+                          border: Border.all(color: Theme.of(context).colorScheme.error),
+                          borderRadius: AppTheme.kCardRadius,
                         ),
                         child: Text(
                           provider.error!,
-                          style: const TextStyle(color: Color(0xFFDC2626)),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onError),
                         ),
                       ),
 
@@ -119,7 +158,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: InkWell(
-                        onTap: _uploadDocument,
+                        onTap: _showUploadBottomSheet,
                         borderRadius: BorderRadius.circular(12),
                         child: CustomPaint(
                           painter: DashedBorderPainter(
@@ -140,15 +179,15 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                 Icon(
                                   Icons.cloud_upload_outlined,
                                   size: 48,
-                                  color: Colors.indigo.shade200,
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                                 ),
                                 const SizedBox(height: 16),
-                                const Text(
+                                Text(
                                   'Drag & drop files here, or click to browse',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
-                                    color: Color(0xFF374151),
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -158,7 +197,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0.5,
                                     fontSize: 11,
-                                    color: Colors.grey.shade500,
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                                   ),
                                 ),
                               ],
@@ -173,8 +212,8 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: AppTheme.kCardRadius,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,10 +223,10 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Expanded(
+                                const Expanded(
                                   child: Text(
                                     'Your Records',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w900,
                                       color: Color(0xFF111827),
@@ -281,10 +320,17 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  subtitle: Text(
-                                    doc.uploadedAt.toLocal().toString().split(' ')[0],
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        doc.uploadedAt.toLocal().toString().split(' ')[0],
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      _buildStatusChip(doc.status),
+                                    ],
                                   ),
                                   trailing: IconButton(
                                     icon: const Icon(Icons.download_rounded, color: Colors.blueGrey),
@@ -302,6 +348,254 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                 ),
               ),
             ),
+          ),
     );
+  }
+
+  Widget _buildStatusChip(String status) {
+    Color backgroundColor;
+    Color textColor;
+    String text;
+    IconData? icon;
+
+    switch (status.toUpperCase()) {
+      case 'PROCESSING':
+        backgroundColor = Colors.amber.shade100;
+        textColor = Colors.amber.shade800;
+        text = 'Scanning...';
+        icon = Icons.hourglass_empty;
+        break;
+      case 'VERIFIED':
+        backgroundColor = Colors.green.shade100;
+        textColor = Colors.green.shade800;
+        text = 'Verified ✓';
+        icon = Icons.check_circle;
+        break;
+      case 'MANUAL_REVIEW':
+        backgroundColor = Colors.red.shade100;
+        textColor = Colors.red.shade800;
+        text = 'Action Required';
+        icon = Icons.warning;
+        break;
+      case 'FAILED':
+        backgroundColor = Colors.red.shade100;
+        textColor = Colors.red.shade800;
+        text = 'Scan Failed';
+        icon = Icons.error;
+        break;
+      default:
+        backgroundColor = Colors.grey.shade100;
+        textColor = Colors.grey.shade800;
+        text = 'Processing';
+        icon = Icons.hourglass_empty;
+    }
+
+    return GestureDetector(
+      onTap: status.toUpperCase() == 'MANUAL_REVIEW' ? _showManualReviewBottomSheet : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null)
+              Icon(icon, size: 12, color: textColor),
+            if (icon != null) const SizedBox(width: 4),
+            Text(
+              text,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showManualReviewBottomSheet() {
+    // TODO: Implement manual review bottom sheet
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Manual review feature coming soon')),
+    );
+  }
+}
+
+class _UploadBottomSheet extends StatefulWidget {
+  @override
+  State<_UploadBottomSheet> createState() => _UploadBottomSheetState();
+}
+
+class _UploadBottomSheetState extends State<_UploadBottomSheet> {
+  final _titleController = TextEditingController();
+  String? _selectedType;
+  PlatformFile? _pickedFile;
+  bool _isUploading = false;
+
+  final List<String> _documentTypes = [
+    'Business License',
+    'Tax Certificate',
+    'Permit',
+    'Certificate',
+    'Other',
+  ];
+
+  bool _isFormValid() {
+    return _titleController.text.trim().isNotEmpty && 
+           _selectedType != null && 
+           _pickedFile != null;
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
+      withData: false,
+      withReadStream: false,
+    );
+    if (result != null) {
+      setState(() => _pickedFile = result.files.single);
+    }
+  }
+
+  Future<void> _uploadDocument() async {
+    if (!_isFormValid()) return;
+
+    setState(() => _isUploading = true);
+    
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          _pickedFile!.path!,
+          filename: _pickedFile!.name,
+        ),
+        'title': _titleController.text.trim(),
+        'document_type': _selectedType,
+      });
+
+      final dio = Dio();
+      await dio.post('/api/vault/documents', data: formData);
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Document uploaded. AI scanning in progress...'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Refresh the document list
+        context.read<DocumentProvider>().loadDocuments();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(friendlyError(e as DioException)),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isUploading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 20,
+        right: 20,
+        top: 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Upload Document',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          
+          // Title field
+          TextField(
+            controller: _titleController,
+            decoration: const InputDecoration(
+              labelText: 'Document Title',
+              hintText: 'Enter document title',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Document type dropdown
+          DropdownButtonFormField<String>(
+            value: _selectedType,
+            decoration: const InputDecoration(
+              labelText: 'Document Type',
+              border: OutlineInputBorder(),
+            ),
+            items: _documentTypes.map((type) {
+              return DropdownMenuItem(value: type, child: Text(type));
+            }).toList(),
+            onChanged: (value) => setState(() => _selectedType = value),
+          ),
+          const SizedBox(height: 16),
+          
+          // File picker button
+          OutlinedButton(
+            onPressed: _pickFile,
+            child: const Text('Browse Files'),
+          ),
+          const SizedBox(height: 8),
+          
+          // Selected file name
+          if (_pickedFile != null)
+            Text(
+              'Selected: ${_pickedFile!.name}',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+              ),
+            ),
+          const SizedBox(height: 20),
+          
+          // Upload button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isFormValid() && !_isUploading ? _uploadDocument : null,
+              child: _isUploading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Upload'),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
   }
 }

@@ -1,20 +1,24 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Persists the JWT for [ApiClient] interceptors and session restore.
 class TokenStorage {
-  TokenStorage(this._prefs);
+  TokenStorage(this._storage);
 
-  final SharedPreferences _prefs;
+  final FlutterSecureStorage _storage;
 
-  static const String jwtKey = 'jwt_token';
+  static const String jwtKey = 'access_token';
 
-  String? get accessToken => _prefs.getString(jwtKey);
+  Future<String?> get accessToken async => await _storage.read(key: jwtKey);
 
   Future<void> setAccessToken(String? token) async {
     if (token == null || token.isEmpty) {
-      await _prefs.remove(jwtKey);
+      await _storage.delete(key: jwtKey);
     } else {
-      await _prefs.setString(jwtKey, token);
+      await _storage.write(key: jwtKey, value: token);
     }
+  }
+
+  Future<void> deleteAll() async {
+    await _storage.deleteAll();
   }
 }

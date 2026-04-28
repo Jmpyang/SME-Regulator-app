@@ -12,36 +12,30 @@ abstract class AppException implements Exception {
 
 /// Network-related exceptions
 class NetworkException extends AppException {
-  const NetworkException(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const NetworkException(super.message, {super.code, super.originalError});
 }
 
 /// Authentication-related exceptions
 class AuthException extends AppException {
-  const AuthException(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const AuthException(super.message, {super.code, super.originalError});
 }
 
 /// Validation-related exceptions
 class ValidationException extends AppException {
-  const ValidationException(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const ValidationException(super.message, {super.code, super.originalError});
 }
 
 /// Server-related exceptions
 class ServerException extends AppException {
-  const ServerException(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const ServerException(super.message, {super.code, super.originalError});
 }
 
 /// File-related exceptions
 class FileException extends AppException {
-  const FileException(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const FileException(super.message, {super.code, super.originalError});
 }
 
 /// Unknown exceptions
 class UnknownException extends AppException {
-  const UnknownException(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const UnknownException(super.message, {super.code, super.originalError});
 }

@@ -11,8 +11,8 @@ ReminderModel _$ReminderModelFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       title: json['title'] as String,
       expiryDate: DateTime.parse(json['expiry_date'] as String),
-      daysRemaining: json['days_remaining'] as int? ?? 0,
-      documentType: json['document_type'] as String? ?? 'Permit',
+      daysRemaining: (json['days_remaining'] as num).toInt(),
+      documentType: json['document_type'] as String,
     );
 
 Map<String, dynamic> _$ReminderModelToJson(ReminderModel instance) =>

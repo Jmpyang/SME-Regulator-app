@@ -3,27 +3,35 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
 
-class VerifyOtpScreen extends StatefulWidget {
-  const VerifyOtpScreen({super.key});
+class VerifyOTPScreen extends StatefulWidget {
+  const VerifyOTPScreen({super.key});
 
   @override
-  State<VerifyOtpScreen> createState() => _VerifyOtpScreenState();
+  State<VerifyOTPScreen> createState() => _VerifyOTPScreenState();
 }
 
-class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
+class _VerifyOTPScreenState extends State<VerifyOTPScreen> {
   final _otp = TextEditingController();
   late String _email;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _email = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+    _email = args?['email'] as String? ?? '';
   }
 
   void _verify() async {
     final success = await context.read<AuthProvider>().verifyOtp(_email, _otp.text);
     if (success && mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.dashboard, (r) => false);
+      Navigator.pushNamed(
+        context,
+        AppRoutes.resetPassword,
+        arguments: {
+          'email': _email,
+          'otp': _otp.text,
+        },
+      );
     } else if (mounted) {
       final err = context.read<AuthProvider>().error;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err ?? 'Invalid OTP')));

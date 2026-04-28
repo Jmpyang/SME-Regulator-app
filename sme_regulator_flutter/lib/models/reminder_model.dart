@@ -21,6 +21,14 @@ class ReminderModel {
     required this.documentType,
   });
 
-  factory ReminderModel.fromJson(Map<String, dynamic> json) => _$ReminderModelFromJson(json);
+  factory ReminderModel.fromJson(Map<String, dynamic> json) {
+    return ReminderModel(
+      id: (json['id'] as String?) ?? '',
+      title: (json['title'] as String?) ?? '',
+      expiryDate: DateTime.tryParse((json['expiry_date'] as String?) ?? '') ?? DateTime.now(),
+      daysRemaining: (json['days_remaining'] as num?)?.toInt() ?? 0,
+      documentType: (json['document_type'] as String?) ?? '',
+    );
+  }
   Map<String, dynamic> toJson() => _$ReminderModelToJson(this);
 }

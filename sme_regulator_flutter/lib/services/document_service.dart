@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/document_model.dart';
-import '../utils/api_parsers.dart';
 
 class DocumentService {
   DocumentService(this._dio);
@@ -9,37 +8,48 @@ class DocumentService {
   final Dio _dio;
 
   Future<List<DocumentModel>> fetchDocuments() async {
-    final response = await _dio.get('/api/documents/');
-    final List<dynamic> data = decodeList(response.data);
-    return data.map((json) => DocumentModel.fromJson(json)).toList();
+    try {
+      final response = await _dio.get('/api/vault/documents');
+      final list = (response.data['documents'] as List?) ?? [];
+      return list.map((e) => DocumentModel.fromJson(e as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      // 404 just means empty — not a real error
+      if (e.response?.statusCode == 404) return [];
+      rethrow;
+    }
   }
 
-  Future<DocumentModel> uploadDocument(PlatformFile file, String title) async {
-    MultipartFile fileBytes;
-    
-    if (file.bytes != null) {
-      // Use bytes if available (web platform)
-      fileBytes = MultipartFile.fromBytes(
-        file.bytes!,
-        filename: file.name,
-      );
-    } else if (file.path != null) {
-      // Read from file path if available (desktop/mobile platforms)
-      fileBytes = await MultipartFile.fromFile(
+  Future<void> uploadDocument({
+    required String title,
+    required String documentType,
+  }) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
+    );
+    if (result == null) return; // user cancelled
+
+    final file = result.files.single;
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
         file.path!,
         filename: file.name,
-      );
-    } else {
-      throw Exception('No file data available for upload');
-    }
-
-    final formData = FormData.fromMap({
-      'file': fileBytes,
+      ),
       'title': title,
+      'document_type': documentType,
     });
 
-    final response = await _dio.post('/api/documents/upload/', data: formData);
-    return DocumentModel.fromJson(decodeMap(response.data));
+    await _dio.post('/api/vault/documents', data: formData);
+  }
+
+  Future<DocumentModel> getDocument(int id) async {
+    try {
+      final response = await _dio.get('/api/vault/documents/$id');
+      return DocumentModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) rethrow;
+      rethrow;
+    }
   }
 
   Future<List<int>> downloadDocument(String id) async {

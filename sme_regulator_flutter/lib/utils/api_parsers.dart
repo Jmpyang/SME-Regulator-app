@@ -30,6 +30,7 @@ DocumentModel parseDocument(dynamic raw) {
     uploadedAt: uploaded != null
         ? DateTime.tryParse(uploaded.toString()) ?? DateTime.now()
         : DateTime.now(),
+    status: json['status']?.toString() ?? 'PROCESSING',
   );
 }
 

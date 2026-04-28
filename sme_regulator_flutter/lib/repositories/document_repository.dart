@@ -1,4 +1,3 @@
-import 'package:file_picker/file_picker.dart';
 import '../models/document_model.dart';
 import '../services/document_service.dart';
 
@@ -11,8 +10,11 @@ class DocumentRepository {
     return await _documentService.fetchDocuments();
   }
 
-  Future<DocumentModel> uploadDocument(PlatformFile file, String title) async {
-    return await _documentService.uploadDocument(file, title);
+  Future<void> uploadDocument({
+    required String title,
+    required String documentType,
+  }) async {
+    await _documentService.uploadDocument(title: title, documentType: documentType);
   }
 
   Future<List<int>> downloadDocument(String id) async {

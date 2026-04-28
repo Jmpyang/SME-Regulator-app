@@ -61,6 +61,39 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> loginWithGoogle(String idToken) async {
+    try {
+      _setLoading(true);
+      await _repository.loginWithGoogle(idToken);
+      _user = await _repository.getCurrentUser();
+      _setError(null);
+      return true;
+    } catch (e) {
+      await logout();
+      _setError(e.toString());
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> changePassword(String currentPassword, String newPassword) async {
+    try {
+      _setLoading(true);
+      await _repository.changePassword(currentPassword, newPassword);
+      _setError(null);
+      return true;
+    } on DioException catch (e) {
+      _error = getErrorMessage(e);
+      return false;
+    } catch (e) {
+      _error = getErrorMessage(e);
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<bool> register(Map<String, dynamic> data) async {
     try {
       _setLoading(true);

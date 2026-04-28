@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
 import '../providers/profile_provider.dart';
-import '../providers/theme_notifier.dart';
+import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/custom_app_bar.dart';
+import '../core/constants.dart';
+import '../core/theme.dart';
+import '../routes/app_routes.dart';
+import '../utils/error_handler.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,16 +19,36 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _businessNameController = TextEditingController();
   final _kraPinController = TextEditingController();
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   String? _selectedJobTitle;
   String? _selectedIndustry;
   String? _selectedCounty;
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a password';
+    } else if (value.length < 8) {
+      return 'Password must be at least 8 characters long';
+    }
+    return null;
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please confirm your password';
+    } else if (value != _newPasswordController.text) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -60,7 +85,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _phoneController.dispose();
     _businessNameController.dispose();
     _kraPinController.dispose();
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  bool _isPasswordFormValid() {
+    return _currentPasswordController.text.isNotEmpty &&
+           _newPasswordController.text.isNotEmpty &&
+           _confirmPasswordController.text.isNotEmpty &&
+           _newPasswordController.text != _currentPasswordController.text &&
+           _newPasswordController.text == _confirmPasswordController.text;
+  }
+
+  Widget _buildPasswordValidationHelper() {
+    final current = _currentPasswordController.text;
+    final newPass = _newPasswordController.text;
+    final confirm = _confirmPasswordController.text;
+    
+    if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    if (newPass == current) {
+      return Text(
+        'Must differ from current password',
+        style: TextStyle(color: Colors.red.shade600, fontSize: 12),
+      );
+    }
+    
+    if (newPass != confirm) {
+      return Text(
+        'Passwords do not match',
+        style: TextStyle(color: Colors.red.shade600, fontSize: 12),
+      );
+    }
+    
+    return Text(
+      'Ready to update ✓',
+      style: TextStyle(color: Colors.green.shade600, fontSize: 12),
+    );
+  }
+
+  Future<void> _updatePassword() async {
+    try {
+      final success = await context.read<AuthProvider>().changePassword(
+        _currentPasswordController.text,
+        _newPasswordController.text,
+      );
+      
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password updated'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Clear password fields
+        _currentPasswordController.clear();
+        _newPasswordController.clear();
+        _confirmPasswordController.clear();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(friendlyError(e as DioException)),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _submitForm() async {
@@ -117,19 +213,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             title: const Text(
                               'Dark mode',
                               style: TextStyle(fontWeight: FontWeight.w900),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             subtitle: Text(
                               'Switch between light and dark theme',
                               style: TextStyle(color: Colors.grey.shade600),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             trailing: Switch(
-                              value: context.watch<ThemeNotifier>().isDark,
-                              onChanged: (v) => context.read<ThemeNotifier>().setThemeMode(
-                                    v ? ThemeMode.dark : ThemeMode.light,
-                                  ),
+                              value: context.watch<ThemeProvider>().isDark,
+                              onChanged: (v) => context.read<ThemeProvider>().toggleTheme(),
                             ),
                           ),
-                        ],
+                                                  ],
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -158,13 +254,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: const EdgeInsets.all(16),
                         margin: const EdgeInsets.only(bottom: 24),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
-                          border: Border.all(color: const Color(0xFFFCA5A5)),
-                          borderRadius: BorderRadius.circular(8),
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border.all(color: Theme.of(context).colorScheme.error),
+                          borderRadius: AppTheme.kCardRadius,
                         ),
                         child: Text(
                           provider.error!,
-                          style: const TextStyle(color: Color(0xFFDC2626)),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onError),
                         ),
                       ),
 
@@ -173,8 +269,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: AppTheme.kCardRadius,
                       ),
                       child: Form(
                         key: _formKey,
@@ -322,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       _buildDropdown(
                                         hint: 'Select Job Title...',
                                         value: _selectedJobTitle,
-                                        items: ['Manager', 'Director', 'Owner', 'Staff'],
+                                        items: kJobTitles,
                                         onChanged: (val) => setState(() => _selectedJobTitle = val),
                                       ),
                                     ],
@@ -410,7 +506,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             _buildDropdown(
                                               hint: 'Select Job Title...',
                                               value: _selectedJobTitle,
-                                              items: ['Manager', 'Director', 'Owner', 'Staff'],
+                                              items: kJobTitles,
                                               onChanged: (val) => setState(() => _selectedJobTitle = val),
                                             ),
                                           ],
@@ -474,7 +570,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       _buildDropdown(
                                         hint: 'Select Category...',
                                         value: _selectedIndustry,
-                                        items: ['Technology', 'Retail', 'Agriculture', 'Healthcare', 'Other'],
+                                        items: kBusinessTypes,
                                         onChanged: (val) => setState(() => _selectedIndustry = val),
                                       ),
                                       const SizedBox(height: 24),
@@ -483,7 +579,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       _buildDropdown(
                                         hint: 'Select County...',
                                         value: _selectedCounty,
-                                        items: ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru'],
+                                        items: kKenyanCounties,
                                         onChanged: (val) => setState(() => _selectedCounty = val),
                                       ),
                                     ],
@@ -500,7 +596,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             _buildDropdown(
                                               hint: 'Select Category...',
                                               value: _selectedIndustry,
-                                              items: ['Technology', 'Retail', 'Agriculture', 'Healthcare', 'Other'],
+                                              items: kBusinessTypes,
                                               onChanged: (val) => setState(() => _selectedIndustry = val),
                                             ),
                                           ],
@@ -516,7 +612,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             _buildDropdown(
                                               hint: 'Select County...',
                                               value: _selectedCounty,
-                                              items: ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru'],
+                                              items: kKenyanCounties,
                                               onChanged: (val) => setState(() => _selectedCounty = val),
                                             ),
                                           ],
@@ -556,6 +652,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    // Security Section
+                    Text('Security', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 16),
+                    // Current Password field
+                    _buildPasswordTextField(_currentPasswordController, hint: 'Current Password'),
+                    const SizedBox(height: 16),
+                    // New Password field
+                    _buildPasswordTextField(_newPasswordController, hint: 'New Password'),
+                    const SizedBox(height: 16),
+                    // Confirm New Password field
+                    _buildPasswordTextField(_confirmPasswordController, hint: 'Confirm New Password'),
+                    const SizedBox(height: 8),
+                    // Password validation helper text
+                    _buildPasswordValidationHelper(),
+                    const SizedBox(height: 24),
+                    // Update Password button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isPasswordFormValid() ? _updatePassword : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isPasswordFormValid() ? Colors.green : Colors.grey,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'UPDATE PASSWORD',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ),
@@ -607,25 +742,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildTextField({TextEditingController? controller, String? hint}) {
+  Color _getPasswordValidationColor() {
+    final current = _currentPasswordController.text;
+    final newPass = _newPasswordController.text;
+    final confirm = _confirmPasswordController.text;
+    
+    if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
+      return Colors.grey;
+    }
+    if (current == newPass) {
+      return Colors.red;
+    }
+    if (newPass != confirm) {
+      return Colors.red;
+    }
+    return Colors.green;
+  }
+
+  Widget _buildTextField({required TextEditingController controller, String hint = ''}) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400),
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderRadius: AppTheme.kInputRadius,
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: AppTheme.kInputRadius,
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF4F46E5)),
+          borderRadius: AppTheme.kInputRadius,
+          borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
         ),
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey.shade400),
       ),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+    );
+  }
+
+  Widget _buildPasswordTextField(TextEditingController controller, {String hint = ''}) {
+    return TextFormField(
+      controller: controller,
+      obscureText: true,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        border: OutlineInputBorder(
+          borderRadius: AppTheme.kInputRadius,
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: AppTheme.kInputRadius,
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppTheme.kInputRadius,
+          borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
+        ),
+        prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey.shade400),
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey.shade400),
+      ),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
     );
   }
 
@@ -637,6 +819,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return DropdownButtonFormField<String>(
       initialValue: value != null && items.contains(value) ? value : null,
+      isExpanded: true,
       decoration: InputDecoration(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -654,7 +837,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       icon: const Icon(Icons.keyboard_arrow_down),
       hint: Text(hint, style: TextStyle(color: Colors.grey.shade600)),
-      items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+      items: items.map((e) => DropdownMenuItem(
+        value: e, 
+        child: Text(
+          e, 
+          overflow: TextOverflow.ellipsis,
+        )
+      )).toList(),
       onChanged: onChanged,
     );
   }

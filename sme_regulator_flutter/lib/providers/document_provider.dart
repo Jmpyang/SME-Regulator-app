@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import '../models/document_model.dart';
 import '../repositories/document_repository.dart';
 import '../utils/error_handler.dart';
@@ -10,6 +10,7 @@ class DocumentProvider with ChangeNotifier {
   List<DocumentModel> _documents = [];
   bool _isLoading = false;
   String? _error;
+  Timer? _syncTimer;
 
   DocumentProvider(this._repository);
 
@@ -23,29 +24,60 @@ class DocumentProvider with ChangeNotifier {
   }
 
   Future<void> loadDocuments() async {
+    _isLoading = true;
+    notifyListeners(); // show existing data + loading indicator
     try {
-      _setLoading(true);
       _documents = await _repository.getDocuments();
       _error = null;
     } catch (e) {
+      // keep showing old data, show snackbar error
       _error = getErrorMessage(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> uploadDocument({
+    required String title,
+    required String documentType,
+  }) async {
+    try {
+      _setLoading(true);
+      await _repository.uploadDocument(title: title, documentType: documentType);
+      await loadDocuments(); // Refresh the list
+      _error = null;
+    } catch (e) {
+      _error = getErrorMessage(e);
+      rethrow;
     } finally {
       _setLoading(false);
     }
   }
 
-  Future<bool> uploadDocument(PlatformFile file, String title) async {
+  void startSync() {
+    _syncTimer?.cancel();
+    _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
+      await fetchDocuments(); // silent refresh, no loading indicator
+    });
+  }
+
+  void stopSync() => _syncTimer?.cancel();
+
+  Future<void> fetchDocuments() async {
     try {
-      _setLoading(true);
-      final doc = await _repository.uploadDocument(file, title);
-      _documents.insert(0, doc);
+      _documents = await _repository.getDocuments();
       _error = null;
-      return true;
+      notifyListeners();
     } catch (e) {
       _error = getErrorMessage(e);
-      return false;
-    } finally {
-      _setLoading(false);
+      notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    stopSync();
+    super.dispose();
   }
 }

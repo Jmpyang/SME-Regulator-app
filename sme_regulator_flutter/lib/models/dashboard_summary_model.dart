@@ -28,6 +28,15 @@ class DashboardSummaryModel {
     required this.upcomingExpiries,
   });
 
-  factory DashboardSummaryModel.fromJson(Map<String, dynamic> json) => _$DashboardSummaryModelFromJson(json);
+  factory DashboardSummaryModel.fromJson(Map<String, dynamic> json) {
+    // Apply null-safe pattern as specified in windsurf_flutter_v2.md
+    return DashboardSummaryModel(
+      complianceScore: (json['compliance_score'] as num?)?.toInt() ?? 0,
+      activePermits: (json['active_permits'] as num?)?.toInt() ?? 0,
+      missingExpired: (json['missing_expired'] as num?)?.toInt() ?? 0,
+      requiredCategories: (json['required_categories'] as num?)?.toInt() ?? 0,
+      upcomingExpiries: (json['upcoming_expiries'] as List?)?.map((e) => ReminderModel.fromJson(e as Map<String, dynamic>)).toList() ?? [],
+    );
+  }
   Map<String, dynamic> toJson() => _$DashboardSummaryModelToJson(this);
 }

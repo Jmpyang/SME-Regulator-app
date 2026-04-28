@@ -9,10 +9,10 @@ part of 'dashboard_summary_model.dart';
 DashboardSummaryModel _$DashboardSummaryModelFromJson(
         Map<String, dynamic> json) =>
     DashboardSummaryModel(
-      complianceScore: (json['compliance_score'] as num?)?.toInt() ?? 0,
-      activePermits: (json['active_permits'] as num?)?.toInt() ?? 0,
-      missingExpired: (json['missing_expired'] as num?)?.toInt() ?? 0,
-      requiredCategories: (json['required_categories'] as num?)?.toInt() ?? 0,
+      complianceScore: (json['compliance_score'] as num).toInt(),
+      activePermits: (json['active_permits'] as num).toInt(),
+      missingExpired: (json['missing_expired'] as num).toInt(),
+      requiredCategories: (json['required_categories'] as num).toInt(),
       upcomingExpiries: (json['upcoming_expiries'] as List<dynamic>?)
               ?.map((e) => ReminderModel.fromJson(e as Map<String, dynamic>))
               .toList() ??

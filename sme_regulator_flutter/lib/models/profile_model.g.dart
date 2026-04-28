@@ -7,8 +7,8 @@ part of 'profile_model.dart';
 // **************************************************************************
 
 ProfileModel _$ProfileModelFromJson(Map<String, dynamic> json) => ProfileModel(
-      id: json['id'] as String? ?? '',
-      email: json['email'] as String? ?? '',
+      id: json['id'] as String,
+      email: json['email'] as String,
       firstName: json['first_name'] as String? ?? '',
       lastName: json['last_name'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
@@ -17,6 +17,7 @@ ProfileModel _$ProfileModelFromJson(Map<String, dynamic> json) => ProfileModel(
       kraPin: json['kra_pin'] as String? ?? '',
       businessType: json['business_type'] as String? ?? '',
       county: json['county'] as String? ?? '',
+      isVerified: json['is_verified'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ProfileModelToJson(ProfileModel instance) =>
@@ -31,4 +32,5 @@ Map<String, dynamic> _$ProfileModelToJson(ProfileModel instance) =>
       'kra_pin': instance.kraPin,
       'business_type': instance.businessType,
       'county': instance.county,
+      'is_verified': instance.isVerified,
     };

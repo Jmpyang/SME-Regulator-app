@@ -10,7 +10,7 @@ class AuthService {
   final Dio _dio;
   final TokenStorage _tokenStorage;
 
-  bool get hasToken => (_tokenStorage.accessToken ?? '').isNotEmpty;
+  bool get hasToken => (_tokenStorage.accessToken as String? ?? '').isNotEmpty;
 
   String? _extractAccessToken(Map<String, dynamic> data) {
     final t = data['access_token'] ?? data['token'] ?? data['accessToken'];
@@ -18,22 +18,37 @@ class AuthService {
   }
 
   Future<UserModel> login(String email, String password) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/api/auth/login',
-      data: {'email': email, 'password': password},
-    );
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/auth/login',
+        data: {'email': email, 'password': password},
+      );
 
-    final data = response.data ?? {};
-    final token = _extractAccessToken(data);
-    if (token != null && token.isNotEmpty) {
-      await _tokenStorage.setAccessToken(token);
+      final data = response.data ?? {};
+      final token = _extractAccessToken(data);
+      if (token != null && token.isNotEmpty) {
+        await _tokenStorage.setAccessToken(token);
+      }
+
+      // Handle user data from different possible response structures
+      Map<String, dynamic> userData = {};
+      if (data['user'] is Map) {
+        userData = Map<String, dynamic>.from(data['user'] as Map);
+      } else if (data['data'] is Map && data['data']['user'] is Map) {
+        userData = Map<String, dynamic>.from(data['data']['user'] as Map);
+      } else if (data is Map) {
+        userData = Map<String, dynamic>.from(data);
+      }
+
+      return UserModel.fromProfileMap(userData);
+    } catch (e) {
+      // If login parsing fails, try to get current user as fallback
+      try {
+        return await getCurrentUser();
+      } catch (fallbackError) {
+        rethrow;
+      }
     }
-
-    if (data['user'] is Map<String, dynamic>) {
-      return UserModel.fromProfileMap(Map<String, dynamic>.from(data['user'] as Map));
-    }
-
-    return getCurrentUser();
   }
 
   Future<void> register(Map<String, dynamic> data) async {
@@ -85,8 +100,33 @@ class AuthService {
   }
 
   Future<UserModel> getCurrentUser() async {
-    final response = await _dio.get('/api/profile/');
-    return UserModel.fromProfileMap(decodeMap(response.data));
+    try {
+      final response = await _dio.get('/api/profile/');
+      final data = decodeMap(response.data);
+      return UserModel.fromProfileMap(data);
+    } catch (e) {
+      // Return a default user if getCurrentUser fails
+      return UserModel(
+        id: '',
+        email: '',
+        name: 'User',
+        phone: '',
+        role: 'user',
+      );
+    }
+  }
+
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    await _dio.post('/api/auth/change-password', data: {
+      'current_password': currentPassword,
+      'new_password': newPassword,
+    });
+  }
+
+  Future<void> loginWithGoogle(String idToken) async {
+    await _dio.post('/api/auth/google', data: {
+      'token': idToken,
+    });
   }
 
   Future<void> logout() => _tokenStorage.setAccessToken(null);

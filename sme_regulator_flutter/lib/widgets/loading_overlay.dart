@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/loading_provider.dart';
+import 'loading_widget.dart';
+import '../core/theme.dart';
 
 class LoadingOverlay extends StatelessWidget {
   const LoadingOverlay({
@@ -27,26 +29,19 @@ class LoadingOverlay extends StatelessWidget {
             if (isLoading && showIndicator)
               Container(
                 color: Colors.black.withOpacity(0.3),
-                child: Center(
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const CircularProgressIndicator(),
-                          if (message != null) ...[
-                            const SizedBox(height: 16),
-                            Text(
-                              message,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ],
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    LoadingWidget(),
+                    if (message != null) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        message,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ),
+                    ],
+                  ],
                 ),
               ),
           ],
