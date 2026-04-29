@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
 
@@ -13,6 +12,7 @@ import 'providers/profile_provider.dart';
 import 'providers/knowledge_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/loading_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
@@ -33,9 +33,12 @@ Future<void> tryAutoLogin(AuthProvider auth) async {
     final token = await const FlutterSecureStorage().read(key: 'access_token');
     if (token == null) return; // show login screen
 
+    final apiService = ApiService();
+    apiService.initialize();
+    final dio = apiService.dio;
     try {
       // Validate token by hitting a lightweight endpoint
-      await Dio(BaseOptions(baseUrl: AppConfig.baseUrl)).get('/api/profile/');
+      await dio.get('/api/profile/');
       // Token is valid, AuthProvider will handle user state through checkAuthStatus
     } catch (_) {
       // Token expired or invalid — send to login
@@ -50,7 +53,6 @@ Future<void> tryAutoLogin(AuthProvider auth) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final prefs = await SharedPreferences.getInstance();
   final apiService = ApiService();
   apiService.initialize();
 

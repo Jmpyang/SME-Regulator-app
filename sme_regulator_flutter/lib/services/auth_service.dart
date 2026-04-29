@@ -10,7 +10,7 @@ class AuthService {
   final Dio _dio;
   final TokenStorage _tokenStorage;
 
-  bool get hasToken => (_tokenStorage.accessToken as String? ?? '').isNotEmpty;
+  Future<bool> get hasToken async => (await _tokenStorage.accessToken ?? '').isNotEmpty;
 
   String? _extractAccessToken(Map<String, dynamic> data) {
     final t = data['access_token'] ?? data['token'] ?? data['accessToken'];
@@ -36,9 +36,8 @@ class AuthService {
         userData = Map<String, dynamic>.from(data['user'] as Map);
       } else if (data['data'] is Map && data['data']['user'] is Map) {
         userData = Map<String, dynamic>.from(data['data']['user'] as Map);
-      } else if (data is Map) {
-        userData = Map<String, dynamic>.from(data);
-      }
+      } else      userData = Map<String, dynamic>.from(data);
+    
 
       return UserModel.fromProfileMap(userData);
     } catch (e) {

@@ -6,7 +6,7 @@ class SnackBarUtils {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -36,7 +36,7 @@ class SnackBarUtils {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error, color: Colors.white, size: 20),
+            const Icon(Icons.error, color: Colors.white, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -66,7 +66,7 @@ class SnackBarUtils {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.info, color: Colors.white, size: 20),
+            const Icon(Icons.info, color: Colors.white, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -96,7 +96,7 @@ class SnackBarUtils {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.warning, color: Colors.white, size: 20),
+            const Icon(Icons.warning, color: Colors.white, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

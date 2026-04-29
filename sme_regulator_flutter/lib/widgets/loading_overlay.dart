@@ -28,11 +28,11 @@ class LoadingOverlay extends StatelessWidget {
             child,
             if (isLoading && showIndicator)
               Container(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    LoadingWidget(),
+                    const LoadingWidget(),
                     if (message != null) ...[
                       const SizedBox(height: 16),
                       Text(

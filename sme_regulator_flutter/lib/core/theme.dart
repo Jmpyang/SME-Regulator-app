@@ -24,12 +24,11 @@ class AppTheme {
     ),
     scaffoldBackgroundColor: const Color(0xFFF7F8FC),
     visualDensity: VisualDensity.adaptivePlatformDensity,
-    fontFamily: 'Inter',
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: kPrimaryColor,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: kButtonRadius),
+        shape: const RoundedRectangleBorder(borderRadius: kButtonRadius),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
@@ -40,11 +39,11 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.grey[100],
-      border: OutlineInputBorder(
+      border: const OutlineInputBorder(
         borderRadius: kInputRadius,
         borderSide: BorderSide.none,
       ),
-      focusedBorder: OutlineInputBorder(
+      focusedBorder: const OutlineInputBorder(
         borderRadius: kInputRadius,
         borderSide: BorderSide(color: kPrimaryColor, width: 1.5),
       ),
@@ -61,7 +60,7 @@ class AppTheme {
       surface: Color(0xFF1E1E2E),
       onSurface: Colors.white,           // ALL surface text white
       onSurfaceVariant: Color(0xFFCDD0D8), // secondary text clearly visible
-      surfaceVariant: Color(0xFF2A2A3E),
+      surfaceContainerHighest: Color(0xFF2A2A3E),
       onPrimary: Colors.white,
       error: Color(0xFFFF6B6B),
     ),
@@ -94,12 +93,11 @@ class AppTheme {
     ),
     dividerColor: const Color(0xFF2A2A3E),
     visualDensity: VisualDensity.adaptivePlatformDensity,
-    fontFamily: 'Inter',
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: kPrimaryColor,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: kButtonRadius),
+        shape: const RoundedRectangleBorder(borderRadius: kButtonRadius),
       ),
     ),
     textButtonTheme: TextButtonThemeData(

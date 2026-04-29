@@ -45,7 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
            _confirmPasswordError == null;
   }
 
-  void _validateAndSubmit() async {
+  void _validateAndSubmit() {
     // Clear previous errors
     setState(() {
       _nameError = null;
@@ -85,7 +85,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     
     if (hasError) return;
     
-    // If validation passes, proceed with registration
+    _submitForm();
+  }
+
+  Future<void> _submitForm() async {
     try {
       final data = {
         'name': _name.text,
@@ -134,12 +137,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _name,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                    border: OutlineInputBorder(
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    border: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide.none,
                     ),
-                    focusedBorder: OutlineInputBorder(
+                    focusedBorder: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                     ),
@@ -161,12 +164,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _email,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                    border: OutlineInputBorder(
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    border: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide.none,
                     ),
-                    focusedBorder: OutlineInputBorder(
+                    focusedBorder: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                     ),
@@ -188,17 +191,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _phone,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                    border: OutlineInputBorder(
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    border: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide.none,
                     ),
-                    focusedBorder: OutlineInputBorder(
+                    focusedBorder: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                     ),
                     prefixIcon: Icon(Icons.phone_outlined, color: Colors.grey.shade400),
-                    hintText: 'e.g. 0712 345 678',
+                    hintText: '+1 (555) 123-4567',
                     hintStyle: TextStyle(color: Colors.grey.shade400),
                     helperText: 'Used for SMS compliance alerts',
                     errorText: _phoneError,
@@ -217,12 +220,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                    border: OutlineInputBorder(
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    border: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide.none,
                     ),
-                    focusedBorder: OutlineInputBorder(
+                    focusedBorder: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                     ),
@@ -246,7 +249,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (_passwordError != null) {
                       setState(() => _passwordError = null);
                     }
-                    // Check confirm password match if it has text
                     if (_confirmPassword.text.isNotEmpty) {
                       setState(() {});
                     }
@@ -260,12 +262,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                    border: OutlineInputBorder(
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    border: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide.none,
                     ),
-                    focusedBorder: OutlineInputBorder(
+                    focusedBorder: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                     ),
@@ -311,7 +313,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       backgroundColor: _isFormValid() ? AppTheme.kPrimaryColor : Colors.grey,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: AppTheme.kButtonRadius),
+                      shape: const RoundedRectangleBorder(borderRadius: AppTheme.kButtonRadius),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -339,7 +341,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     GestureDetector(
                       onTap: () => Navigator.pushNamed(context, AppRoutes.login),
-                      child: Text(
+                      child: const Text(
                         "Sign in",
                         style: TextStyle(
                           color: AppTheme.kPrimaryColor,

@@ -29,7 +29,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> checkAuthStatus() async {
-    if (!_repository.hasSavedToken) return false;
+    if (!await _repository.hasSavedToken) return false;
 
     try {
       _setLoading(true);

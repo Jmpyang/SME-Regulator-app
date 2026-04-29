@@ -440,7 +440,7 @@ class __UploadDialogState extends State<_UploadDialog> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
-            value: _selectedDocumentType,
+            initialValue: _selectedDocumentType,
             decoration: const InputDecoration(
               labelText: 'Document Type',
             ),

@@ -7,7 +7,6 @@ import '../providers/auth_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../core/constants.dart';
 import '../core/theme.dart';
-import '../routes/app_routes.dart';
 import '../utils/error_handler.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -764,8 +763,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       controller: controller,
       decoration: InputDecoration(
         filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-        border: OutlineInputBorder(
+        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        border: const OutlineInputBorder(
           borderRadius: AppTheme.kInputRadius,
           borderSide: BorderSide.none,
         ),
@@ -773,7 +772,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           borderRadius: AppTheme.kInputRadius,
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderRadius: AppTheme.kInputRadius,
           borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
         ),
@@ -790,8 +789,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       obscureText: true,
       decoration: InputDecoration(
         filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-        border: OutlineInputBorder(
+        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        border: const OutlineInputBorder(
           borderRadius: AppTheme.kInputRadius,
           borderSide: BorderSide.none,
         ),
@@ -799,7 +798,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           borderRadius: AppTheme.kInputRadius,
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderRadius: AppTheme.kInputRadius,
           borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
         ),

@@ -6,7 +6,7 @@ class LoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -14,11 +14,11 @@ class LoadingWidget extends StatelessWidget {
             color: AppTheme.kPrimaryColor,
             strokeWidth: 3,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             'Loading...',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -29,27 +29,3 @@ class LoadingWidget extends StatelessWidget {
   }
 }
 
-class LoadingOverlay extends StatelessWidget {
-  final Widget child;
-  final bool isLoading;
-
-  const LoadingOverlay({
-    super.key,
-    required this.child,
-    required this.isLoading,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        child,
-        if (isLoading)
-          Container(
-            color: Colors.black.withOpacity(0.3),
-            child: const LoadingWidget(),
-          ),
-      ],
-    );
-  }
-}

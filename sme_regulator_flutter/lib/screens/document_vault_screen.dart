@@ -108,7 +108,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                   Icon(
                                     Icons.cloud_upload_outlined,
                                     size: 48,
-                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
@@ -149,63 +149,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                         ),
                       ),
 
-                    // Upload Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: InkWell(
-                        onTap: _showUploadBottomSheet,
-                        borderRadius: BorderRadius.circular(12),
-                        child: CustomPaint(
-                          painter: DashedBorderPainter(
-                            color: Colors.grey.shade300,
-                            strokeWidth: 1.5,
-                            dashWidth: 6,
-                            dashSpace: 4,
-                            borderRadius: 12,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 64),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.cloud_upload_outlined,
-                                  size: 48,
-                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Drag & drop files here, or click to browse',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'PDF, PNG, JPG UP TO 10MB',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.5,
-                                    fontSize: 11,
-                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+
                     const SizedBox(height: 24),
 
                     // Records Card
@@ -400,11 +344,10 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null)
-              Icon(icon, size: 12, color: textColor),
-            if (icon != null) const SizedBox(width: 4),
-            Text(
+           children: [
+             Icon(icon, size: 12, color: textColor),
+             const SizedBox(width: 4),
+             Text(
               text,
               style: TextStyle(
                 color: textColor,
@@ -452,7 +395,7 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
   }
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
       withData: false,
@@ -478,7 +421,7 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
         'document_type': _selectedType,
       });
 
-      final dio = Dio();
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.smeregulator.com'));
       await dio.post('/api/vault/documents', data: formData);
 
       if (mounted) {
@@ -496,7 +439,7 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(friendlyError(e as DioException)),
+            content: Text('Upload failed: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -542,7 +485,7 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
           
           // Document type dropdown
           DropdownButtonFormField<String>(
-            value: _selectedType,
+            initialValue: _selectedType,
             decoration: const InputDecoration(
               labelText: 'Document Type',
               border: OutlineInputBorder(),

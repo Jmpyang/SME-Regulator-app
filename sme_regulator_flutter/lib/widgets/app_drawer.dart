@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../routes/app_routes.dart';
-import '../providers/theme_notifier.dart';
+import '../providers/theme_provider.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -95,22 +95,22 @@ class AppDrawer extends StatelessWidget {
   }
 
   Widget _buildThemeToggle(BuildContext context) {
-    return Consumer<ThemeNotifier>(
-      builder: (context, themeNotifier, child) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
         return ListTile(
           leading: Icon(
-            themeNotifier.isDark ? Icons.dark_mode : Icons.light_mode,
+            themeProvider.isDark ? Icons.dark_mode : Icons.light_mode,
             color: Colors.grey.shade600,
           ),
           title: Text(
-            themeNotifier.isDark ? 'Light Mode' : 'Dark Mode',
+            themeProvider.isDark ? 'Light Mode' : 'Dark Mode',
             style: TextStyle(
               color: Colors.grey.shade800,
               fontWeight: FontWeight.normal,
             ),
           ),
           onTap: () {
-            themeNotifier.toggle();
+            themeProvider.toggleTheme();
             Navigator.pop(context);
           },
         );
@@ -139,7 +139,7 @@ class AppDrawer extends StatelessWidget {
         ),
       ),
       selected: isSelected,
-      selectedTileColor: const Color(0xFF4F46E5).withOpacity(0.05),
+      selectedTileColor: const Color(0xFF4F46E5).withValues(alpha: 0.05),
       onTap: () {
         if (!isSelected) {
           Navigator.pushReplacementNamed(context, route);

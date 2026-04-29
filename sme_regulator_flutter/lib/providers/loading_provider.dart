@@ -38,24 +38,4 @@ class LoadingProvider extends ChangeNotifier {
   bool get hasAnyLoading => _loadingStates.values.any((loading) => loading);
 }
 
-class LoadingManager {
-  static final LoadingManager _instance = LoadingManager._internal();
-  factory LoadingManager() => _instance;
-  LoadingManager._internal();
 
-  final Map<String, VoidCallback> _operations = {};
-
-  String startOperation(VoidCallback operation, {String? operationKey}) {
-    final key = operationKey ?? 'operation_${DateTime.now().millisecondsSinceEpoch}';
-    _operations[key] = operation;
-    return key;
-  }
-
-  void cancelOperation(String key) {
-    _operations.remove(key);
-  }
-
-  void cancelAllOperations() {
-    _operations.clear();
-  }
-}

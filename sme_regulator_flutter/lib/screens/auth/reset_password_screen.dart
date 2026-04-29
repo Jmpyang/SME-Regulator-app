@@ -34,7 +34,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       await context.read<AuthRepository>().resetPassword(_email, _otp.text, _newPassword.text);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Password reset! Please log in.'),
             backgroundColor: Colors.green,
           ),
@@ -102,12 +102,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 controller: _newPassword,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                  border: OutlineInputBorder(
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  border: const OutlineInputBorder(
                     borderRadius: AppTheme.kInputRadius,
                     borderSide: BorderSide.none,
                   ),
-                  focusedBorder: OutlineInputBorder(
+                  focusedBorder: const OutlineInputBorder(
                     borderRadius: AppTheme.kInputRadius,
                     borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                   ),
@@ -125,12 +125,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 obscureText: true,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                  border: OutlineInputBorder(
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  border: const OutlineInputBorder(
                     borderRadius: AppTheme.kInputRadius,
                     borderSide: BorderSide.none,
                   ),
-                  focusedBorder: OutlineInputBorder(
+                  focusedBorder: const OutlineInputBorder(
                     borderRadius: AppTheme.kInputRadius,
                     borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                   ),
@@ -156,7 +156,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     backgroundColor: AppTheme.kPrimaryColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: AppTheme.kButtonRadius),
+                    shape: const RoundedRectangleBorder(borderRadius: AppTheme.kButtonRadius),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

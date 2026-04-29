@@ -15,7 +15,7 @@ class LandingScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               AppTheme.kPrimaryColor,
-              const Color(0xFF1E3A8F),
+              Color(0xFF1E3A8F),
             ],
           ),
         ),
@@ -29,18 +29,18 @@ class LandingScreen extends StatelessWidget {
                 Container(
                   width: 120,
                   height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
+                 decoration: BoxDecoration(
+                     color: Colors.white,
+                     shape: BoxShape.circle,
+                     boxShadow: [
+                       BoxShadow(
+                         color: Colors.black.withValues(alpha: 0.1),
+                         blurRadius: 20,
+                         offset: const Offset(0, 4),
+                       ),
+                     ],
+                   ),
+                  child: const Icon(
                     Icons.security,
                     size: 60,
                     color: AppTheme.kPrimaryColor,
@@ -60,14 +60,14 @@ class LandingScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 
                 // Tagline in semi-transparent white
-                Text(
-                  'Your trusted regulatory compliance partner',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white.withOpacity(0.8),
-                  ),
-                ),
+                 Text(
+                   'Your trusted regulatory compliance partner',
+                   style: TextStyle(
+                     fontSize: 16,
+                     fontWeight: FontWeight.w400,
+                     color: Colors.white.withValues(alpha: 0.8),
+                   ),
+                 ),
                 const SizedBox(height: 48),
                 
                 // Single "Get Started" button
@@ -79,7 +79,7 @@ class LandingScreen extends StatelessWidget {
                       backgroundColor: Colors.white,
                       foregroundColor: AppTheme.kPrimaryColor,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: AppTheme.kButtonRadius),
+                      shape: const RoundedRectangleBorder(borderRadius: AppTheme.kButtonRadius),
                     ),
                     child: const Text(
                       'Get Started',

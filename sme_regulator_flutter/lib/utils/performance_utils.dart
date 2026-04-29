@@ -88,18 +88,10 @@ class OptimizedScrollBehavior extends ScrollBehavior {
 
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {
-    switch (getPlatform(context)) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        return const BouncingScrollPhysics();
-      case TargetPlatform.android:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-        return const ClampingScrollPhysics();
-      default:
-        return const ClampingScrollPhysics();
-    }
+    return switch (getPlatform(context)) {
+      TargetPlatform.iOS || TargetPlatform.macOS => const BouncingScrollPhysics(),
+      _ => const ClampingScrollPhysics(),
+    };
   }
 }
 

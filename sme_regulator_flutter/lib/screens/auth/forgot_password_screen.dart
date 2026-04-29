@@ -92,21 +92,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               TextFormField(
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                  border: OutlineInputBorder(
-                    borderRadius: AppTheme.kInputRadius,
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: AppTheme.kInputRadius,
-                    borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
-                  ),
-                  prefixIcon: Icon(Icons.email_outlined, color: Colors.grey.shade400),
-                  hintText: 'Enter your registered email',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                ),
+                 decoration: InputDecoration(
+                   filled: true,
+                   fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
+                   border: const OutlineInputBorder(
+                     borderRadius: AppTheme.kInputRadius,
+                     borderSide: BorderSide.none,
+                   ),
+                   focusedBorder: const OutlineInputBorder(
+                     borderRadius: AppTheme.kInputRadius,
+                     borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
+                   ),
+                   prefixIcon: Icon(Icons.email_outlined, color: Colors.grey.shade400),
+                   hintText: 'Enter your registered email',
+                   hintStyle: TextStyle(color: Colors.grey.shade400),
+                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your email';
@@ -128,7 +128,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     backgroundColor: AppTheme.kPrimaryColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: AppTheme.kButtonRadius),
+                    shape: const RoundedRectangleBorder(borderRadius: AppTheme.kButtonRadius),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

@@ -30,7 +30,7 @@ class AuthRepository {
     return await _authService.getCurrentUser();
   }
 
-  bool get hasSavedToken => _authService.hasToken;
+  Future<bool> get hasSavedToken async => await _authService.hasToken;
 
   Future<void> changePassword(String currentPassword, String newPassword) async {
     // Add changePassword implementation to AuthService

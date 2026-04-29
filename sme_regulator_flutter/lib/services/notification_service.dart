@@ -17,11 +17,7 @@ class NotificationService {
   }
 
   Future<void> markAsRead(int id) async {
-    try {
-      await _dio.put('/api/notifications/$id/read');
-    } on DioException catch (e) {
-      rethrow;
-    }
+    await _dio.put('/api/notifications/$id/read');
   }
 }
 
