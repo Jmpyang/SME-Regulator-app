@@ -7,7 +7,6 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/dashed_border_painter.dart';
 import '../widgets/app_drawer.dart';
 import '../core/theme.dart';
-import '../utils/error_handler.dart';
 
 class DocumentVaultScreen extends StatefulWidget {
   const DocumentVaultScreen({super.key});

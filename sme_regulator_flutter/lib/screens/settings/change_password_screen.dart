@@ -42,8 +42,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       );
       
       if (mounted) {
+        final scaffoldMessenger = ScaffoldMessenger.of(context);
         await const FlutterSecureStorage().deleteAll();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           const SnackBar(content: Text('Password changed. Please log in again.')),
         );
         Navigator.pushNamedAndRemoveUntil(
@@ -58,7 +59,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         if (e is DioException) {
           errorMessage = friendlyError(e);
         }
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+        final scaffoldMessenger = ScaffoldMessenger.of(context);
+        scaffoldMessenger.showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

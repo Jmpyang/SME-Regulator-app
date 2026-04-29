@@ -31,23 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _selectedIndustry;
   String? _selectedCounty;
 
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter a password';
-    } else if (value.length < 8) {
-      return 'Password must be at least 8 characters long';
-    }
-    return null;
-  }
 
-  String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please confirm your password';
-    } else if (value != _newPasswordController.text) {
-      return 'Passwords do not match';
-    }
-    return null;
-  }
 
   @override
   void initState() {
@@ -741,23 +725,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Color _getPasswordValidationColor() {
-    final current = _currentPasswordController.text;
-    final newPass = _newPasswordController.text;
-    final confirm = _confirmPasswordController.text;
-    
-    if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
-      return Colors.grey;
-    }
-    if (current == newPass) {
-      return Colors.red;
-    }
-    if (newPass != confirm) {
-      return Colors.red;
-    }
-    return Colors.green;
-  }
-
+  
   Widget _buildTextField({required TextEditingController controller, String hint = ''}) {
     return TextFormField(
       controller: controller,

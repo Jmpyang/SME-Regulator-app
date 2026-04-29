@@ -25,11 +25,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      final success = await context.read<AuthProvider>().login(_email.text, _password.text);
+      final authProvider = context.read<AuthProvider>();
+      final success = await authProvider.login(_email.text, _password.text);
       if (success && mounted) {
         Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
       } else if (mounted) {
-        final error = context.read<AuthProvider>().error;
+        final error = authProvider.error;
         SnackBarUtils.showError(
           context,
           error ?? 'Login failed. Please check your credentials and try again.',
@@ -76,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
   BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -266,7 +267,8 @@ class _LoginScreenState extends State<LoginScreen> {
       if (googleUser == null) return;
 
       final googleAuth = await googleUser.authentication;
-      await context.read<AuthProvider>().loginWithGoogle(googleAuth.idToken ?? '');
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.loginWithGoogle(googleAuth.idToken ?? '');
 
       if (mounted) {
         Navigator.pushReplacementNamed(context, AppRoutes.dashboard);

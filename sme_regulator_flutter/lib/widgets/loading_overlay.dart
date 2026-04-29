@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/loading_provider.dart';
 import 'loading_widget.dart';
-import '../core/theme.dart';
 
 class LoadingOverlay extends StatelessWidget {
   const LoadingOverlay({

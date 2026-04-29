@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
@@ -137,7 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _name,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                     border: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide.none,
@@ -164,7 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _email,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                     border: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide.none,
@@ -191,7 +190,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _phone,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                     border: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide.none,
@@ -220,7 +219,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                     border: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide.none,
@@ -262,7 +261,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                     border: const OutlineInputBorder(
                       borderRadius: AppTheme.kInputRadius,
                       borderSide: BorderSide.none,

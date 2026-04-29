@@ -15,7 +15,7 @@ void main() {
 
   testWidgets('App renders smoke test', (WidgetTester tester) async {
     final dio = Dio(BaseOptions());
-    const secureStorage = const FlutterSecureStorage();
+    final secureStorage = const FlutterSecureStorage();
     final dummyAuthService = AuthService(dio, TokenStorage(secureStorage));
     final dummyAuthRepository = AuthRepository(dummyAuthService);
 

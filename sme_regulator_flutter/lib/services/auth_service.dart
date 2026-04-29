@@ -36,7 +36,9 @@ class AuthService {
         userData = Map<String, dynamic>.from(data['user'] as Map);
       } else if (data['data'] is Map && data['data']['user'] is Map) {
         userData = Map<String, dynamic>.from(data['data']['user'] as Map);
-      } else      userData = Map<String, dynamic>.from(data);
+      } else {
+      userData = Map<String, dynamic>.from(data);
+    }
     
 
       return UserModel.fromProfileMap(userData);
@@ -101,8 +103,18 @@ class AuthService {
   Future<UserModel> getCurrentUser() async {
     try {
       final response = await _dio.get('/api/profile/');
-      final data = decodeMap(response.data);
-      return UserModel.fromProfileMap(data);
+      if (response.statusCode == 200) {
+        final data = decodeMap(response.data);
+        return UserModel.fromProfileMap(data);
+      } else {
+        return UserModel(
+          id: '',
+          email: '',
+          name: 'User',
+          phone: '',
+          role: 'user',
+        );
+      }
     } catch (e) {
       // Return a default user if getCurrentUser fails
       return UserModel(

@@ -39,13 +39,12 @@ class ThemeProvider extends ChangeNotifier {
 
   String _encodeThemeMode(ThemeMode mode) {
     switch (mode) {
-      case ThemeMode.dark:
-        return 'dark';
+      case ThemeMode.light:
+        return 'light';
       case ThemeMode.system:
         return 'system';
-      case ThemeMode.light:
-      default:
-        return 'light';
+      case ThemeMode.dark:
+        return 'dark';
     }
   }
 }
