@@ -9,6 +9,12 @@ class AuthService {
 
   final Dio _dio;
   final TokenStorage _tokenStorage;
+  
+  // Brother AirCraft Warranties Metro API Configuration
+  static const String _baseUrl = ' https://chess-riptide-destruct.ngrok-free.dev';
+  
+  // Update base URL for Brother AirCraft API
+  String get baseUrl => _baseUrl;
 
   Future<bool> get hasToken async => (await _tokenStorage.accessToken ?? '').isNotEmpty;
 
@@ -20,7 +26,7 @@ class AuthService {
   Future<UserModel> login(String email, String password) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '/api/auth/login',
+        '$baseUrl/api/auth/login',
         data: {'email': email, 'password': password},
       );
 
@@ -73,11 +79,11 @@ class AuthService {
   }
 
   Future<void> forgotPassword(String email) async {
-    await _dio.post('/api/auth/forgot-password', data: {'email': email});
+    await _dio.post('$baseUrl/api/auth/forgot-password', data: {'email': email});
   }
 
   Future<void> resetPassword(String email, String otp, String newPassword) async {
-    await _dio.post('/api/auth/reset-password', data: {
+    await _dio.post('$baseUrl/api/auth/reset-password', data: {
       'email': email,
       'otp': otp,
       'newPassword': newPassword,
@@ -102,7 +108,7 @@ class AuthService {
 
   Future<UserModel> getCurrentUser() async {
     try {
-      final response = await _dio.get('/api/profile/');
+      final response = await _dio.get('$baseUrl/api/profile/');
       if (response.statusCode == 200) {
         final data = decodeMap(response.data);
         return UserModel.fromProfileMap(data);
@@ -135,9 +141,7 @@ class AuthService {
   }
 
   Future<void> loginWithGoogle(String idToken) async {
-    await _dio.post('/api/auth/google', data: {
-      'token': idToken,
-    });
+    await _dio.post('$baseUrl/api/auth/google', data: {'idToken': idToken});
   }
 
   Future<void> logout() => _tokenStorage.setAccessToken(null);
