@@ -11,7 +11,7 @@ class AuthService {
   final TokenStorage _tokenStorage;
   
   // Brother AirCraft Warranties Metro API Configuration
-  static const String _baseUrl = ' https://chess-riptide-destruct.ngrok-free.dev';
+  static const String _baseUrl = 'https://chess-riptide-destruct.ngrok-free.dev';
   
   // Update base URL for Brother AirCraft API
   String get baseUrl => _baseUrl;

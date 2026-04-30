@@ -79,55 +79,35 @@ class _PermitsScreenState extends State<PermitsScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Regulatory Permits',
-                                    style: TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF111827),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Live tracking of your compliance status.',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                            Text(
+                              'Regulatory Permits',
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black,
                               ),
                             ),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(8),
-                                color: Colors.white,
+                            const SizedBox(height: 4),
+                            Text(
+                              'Live tracking of your compliance status.',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
                               ),
-                              child: IconButton(
-                                icon: Icon(Icons.refresh, color: Colors.grey.shade600),
-                                onPressed: () {
-                                  context.read<DocumentProvider>().loadDocuments();
-                                },
-                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
                         const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerLeft,
+                        SizedBox(
+                          width: double.infinity,
                           child: TextButton.icon(
                             style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xFF4F46E5),
+                              backgroundColor: Theme.of(context).colorScheme.primary,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                               shape: RoundedRectangleBorder(

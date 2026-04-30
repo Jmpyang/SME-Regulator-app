@@ -200,7 +200,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             subtitle: Text(
                               'Switch between light and dark theme',
-                              style: TextStyle(color: Colors.grey.shade600),
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark 
+                                    ? Colors.grey.shade300 
+                                    : Colors.grey.shade700,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                             trailing: Switch(
@@ -213,20 +217,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 24),
                     // Page Title Area
-                    const Text(
+                    Text(
                       'Account Settings',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF111827),
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Manage your professional and business identity.',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade600,
+                        color: Colors.black54,
                       ),
                     ),
                     const SizedBox(height: 32),

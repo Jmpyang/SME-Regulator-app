@@ -27,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final authProvider = context.read<AuthProvider>();
       final success = await authProvider.login(_email.text, _password.text);
+      
       if (success && mounted) {
         Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
       } else if (mounted) {
@@ -122,9 +123,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: AppTheme.kInputRadius,
                     borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                   ),
-                  prefixIcon: Icon(Icons.email_outlined, color: Colors.grey.shade400),
+                  prefixIcon: Icon(Icons.email_outlined, color: Colors.grey.shade600),
                   hintText: 'Enter your email',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  hintStyle: const TextStyle(color: Colors.black45),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
@@ -150,9 +151,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: AppTheme.kInputRadius,
                     borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                   ),
-                  prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey.shade400),
+                  prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey.shade600),
                   hintText: 'Enter your password',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  hintStyle: const TextStyle(color: Colors.black45),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off : Icons.visibility,

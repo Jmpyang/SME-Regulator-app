@@ -2,7 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'providers/auth_provider.dart';
+import 'providers/theme_provider.dart';
+import 'providers/dashboard_provider.dart';
+import 'providers/document_provider.dart';
+import 'providers/reminder_provider.dart';
+import 'providers/profile_provider.dart';
+import 'providers/knowledge_provider.dart';
+import 'providers/loading_provider.dart';
 import 'repositories/auth_repository.dart';
+import 'repositories/document_repository.dart';
+import 'repositories/reminder_repository.dart';
+import 'services/dashboard_service.dart';
+import 'services/document_service.dart';
+import 'services/reminders_service.dart';
+import 'services/profile_service.dart';
+import 'services/knowledge_service.dart';
 
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
@@ -50,6 +64,13 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: authProvider),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => LoadingProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider(DashboardService(dio), LoadingProvider())),
+        ChangeNotifierProvider(create: (_) => DocumentProvider(DocumentRepository(DocumentService(dio)))),
+        ChangeNotifierProvider(create: (_) => ReminderProvider(ReminderRepository(RemindersService(dio)))),
+        ChangeNotifierProvider(create: (_) => ProfileProvider(ProfileService(dio))),
+        ChangeNotifierProvider(create: (_) => KnowledgeProvider(KnowledgeService(dio))),
       ],
       child: SmeRegulatorApp(),
     ),

@@ -112,16 +112,18 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                   const SizedBox(height: 16),
                                   Text(
                                     'Tap to upload documents',
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.primary,
+                                    style: const TextStyle(
+                                      fontSize: 18,
                                       fontWeight: FontWeight.w600,
+                                      color: Colors.black,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Supported formats: PDF, PNG, JPG',
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.grey.shade600,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54,
                                     ),
                                   ),
                                 ],

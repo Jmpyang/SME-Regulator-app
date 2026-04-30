@@ -81,9 +81,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 8),
               Text(
                 'Enter your registered email',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
-                  color: Colors.grey.shade600,
+                  color: Colors.black54,
                 ),
               ),
               const SizedBox(height: 24),
@@ -103,9 +103,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                      borderRadius: AppTheme.kInputRadius,
                      borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                    ),
-                   prefixIcon: Icon(Icons.email_outlined, color: Colors.grey.shade400),
+                   prefixIcon: Icon(Icons.email_outlined, color: Colors.grey.shade600),
                    hintText: 'Enter your registered email',
-                   hintStyle: TextStyle(color: Colors.grey.shade400),
+                   hintStyle: const TextStyle(color: Colors.black45),
                  ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {

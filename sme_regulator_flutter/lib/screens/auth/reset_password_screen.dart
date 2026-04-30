@@ -90,9 +90,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               const SizedBox(height: 8),
               Text(
                 'Enter your new password below',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
-                  color: Colors.grey.shade600,
+                  color: Colors.black54,
                 ),
               ),
               const SizedBox(height: 32),
@@ -111,9 +111,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     borderRadius: AppTheme.kInputRadius,
                     borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                   ),
-                  prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey.shade400),
+                  prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey.shade600),
                   hintText: 'Enter new password',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  hintStyle: const TextStyle(color: Colors.black45),
                 ),
                 obscureText: true,
               ),
@@ -134,9 +134,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     borderRadius: AppTheme.kInputRadius,
                     borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                   ),
-                  prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey.shade400),
+                  prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey.shade600),
                   hintText: 'Confirm new password',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  hintStyle: const TextStyle(color: Colors.black45),
                   helperText: _passwordsMatch 
                     ? 'Passwords match ✓'
                     : 'Passwords do not match',

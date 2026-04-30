@@ -51,59 +51,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                       // Title Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Wrap(
-                                  children: [
-                                    const Text(
-                                      'Welcome back, ',
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF111827),
-                                      ),
-                                    ),
-                                    Text(
-                                      displayName,
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF4F46E5),
-                                      ),
-                                    ),
-                                  ],
+                          Wrap(
+                            children: [
+                              const Text(
+                                'Welcome back, ',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF111827),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  email == null
-                                      ? 'Here is your real-time compliance status.'
-                                      : 'Signed in as $email',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
+                              ),
+                              Text(
+                                displayName,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF4F46E5),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.white,
-                            ),
-                            child: IconButton(
-                              icon: Icon(Icons.refresh, color: Colors.grey.shade600),
-                              onPressed: () {
-                                context.read<DashboardProvider>().fetchSummary();
-                              },
+                          const SizedBox(height: 4),
+                          Text(
+                            email == null
+                                ? 'Here is your real-time compliance status.'
+                                : 'Signed in as $email',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black54,
                             ),
                           ),
                         ],

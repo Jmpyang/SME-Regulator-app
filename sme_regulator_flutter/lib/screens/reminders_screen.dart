@@ -39,75 +39,73 @@ class _RemindersScreenState extends State<RemindersScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Page Title Area
-                      Row(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF4F46E5),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Icon(
-                                    Icons.notifications_none_rounded,
-                                    color: Colors.white,
-                                    size: 28,
-                                  ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF4F46E5),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Notifications',
-                                        style: TextStyle(
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.w900,
-                                          color: Color(0xFF111827),
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Auto-generated compliance alerts and system updates.',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                        maxLines: 3,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
+                                child: const Icon(
+                                  Icons.notifications_none_rounded,
+                                  color: Colors.white,
+                                  size: 28,
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Reminders',
+                                      style: TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.black,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Auto-generated compliance alerts and system updates.',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black54,
+                                      ),
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.white,
-                            ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
                             child: TextButton.icon(
                               style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                               onPressed: () {},
-                              icon: Icon(Icons.filter_alt_outlined, color: Colors.grey.shade600, size: 20),
+                              icon: const Icon(Icons.filter_alt_outlined, size: 20),
                               label: const Text(
                                 'Filter',
                                 style: TextStyle(
-                                  color: Color(0xFF374151),
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 16,
                                 ),
                               ),
                             ),
