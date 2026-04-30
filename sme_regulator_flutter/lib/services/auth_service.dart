@@ -13,7 +13,7 @@ class AuthService {
   // Brother AirCraft Warranties Metro API Configuration
   static const String _baseUrl = 'https://chess-riptide-destruct.ngrok-free.dev';
   
-  // Update base URL for Brother AirCraft API
+  // Update base URL for ngrok tunnel above
   String get baseUrl => _baseUrl;
 
   Future<bool> get hasToken async => (await _tokenStorage.accessToken ?? '').isNotEmpty;
