@@ -14,7 +14,7 @@ import 'repositories/document_repository.dart';
 import 'repositories/reminder_repository.dart';
 import 'services/dashboard_service.dart';
 import 'services/document_service.dart';
-import 'services/reminders_service.dart';
+import 'services/reminder_service.dart';
 import 'services/profile_service.dart';
 import 'services/knowledge_service.dart';
 
@@ -68,7 +68,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => LoadingProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider(DashboardService(dio), LoadingProvider())),
         ChangeNotifierProvider(create: (_) => DocumentProvider(DocumentRepository(DocumentService(dio)))),
-        ChangeNotifierProvider(create: (_) => ReminderProvider(ReminderRepository(RemindersService(dio)))),
+        ChangeNotifierProvider(create: (_) => ReminderProvider(ReminderRepository(ReminderService(dio)))),
         ChangeNotifierProvider(create: (_) => ProfileProvider(ProfileService(dio))),
         ChangeNotifierProvider(create: (_) => KnowledgeProvider(KnowledgeService(dio))),
       ],

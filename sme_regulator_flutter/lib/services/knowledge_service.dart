@@ -17,12 +17,12 @@ class KnowledgeService {
     return decodeList(response.data).map((e) => e.toString()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> getComplianceItems() async {
+  Future<List<Map<String, dynamic>>> getItems() async {
     final response = await _dio.get('/api/knowledge/items');
     return decodeList(response.data).map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  Future<Map<String, dynamic>> getComplianceItem(String itemId) async {
+  Future<Map<String, dynamic>> getItem(String itemId) async {
     final response = await _dio.get('/api/knowledge/item/$itemId');
     return decodeMap(response.data);
   }

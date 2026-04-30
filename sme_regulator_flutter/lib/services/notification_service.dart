@@ -1,13 +1,14 @@
 import 'package:dio/dio.dart';
+import '../models/notification_model.dart'; // Import the model instead of redefining it
 
 class NotificationService {
-  NotificationService(this._dio);
-
   final Dio _dio;
+  NotificationService(this._dio);
 
   Future<List<AppNotification>> getNotifications() async {
     try {
-      final response = await _dio.get('/api/notifications/');
+      // Ensure the trailing slash matches your FastAPI router configuration
+      final response = await _dio.get('/api/notifications/'); 
       final list = (response.data as List?) ?? [];
       return list.map((e) => AppNotification.fromJson(e as Map<String, dynamic>)).toList();
     } on DioException catch (e) {
@@ -16,33 +17,8 @@ class NotificationService {
     }
   }
 
-  Future<void> markAsRead(int id) async {
+  Future<void> markAsRead(String id) async {
+    // Changed id to String to match your AppNotification model definition
     await _dio.put('/api/notifications/$id/read');
-  }
-}
-
-class AppNotification {
-  final String id;
-  final String title;
-  final String message;
-  final DateTime createdAt;
-  final bool isRead;
-
-  AppNotification({
-    required this.id,
-    required this.title,
-    required this.message,
-    required this.createdAt,
-    required this.isRead,
-  });
-
-  factory AppNotification.fromJson(Map<String, dynamic> json) {
-    return AppNotification(
-      id: json['id']?.toString() ?? '',
-      title: json['title']?.toString() ?? '',
-      message: json['message']?.toString() ?? '',
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
-      isRead: json['is_read'] as bool? ?? false,
-    );
   }
 }

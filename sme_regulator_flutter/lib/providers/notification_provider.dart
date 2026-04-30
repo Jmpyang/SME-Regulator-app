@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../models/notification_model.dart';
 import '../services/notification_service.dart';
 
 class NotificationProvider with ChangeNotifier {
@@ -15,6 +16,9 @@ class NotificationProvider with ChangeNotifier {
   List<AppNotification> get notifications => _notifications;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  
+  // Helper getter for unread count
+  int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
   void _setLoading(bool val) {
     _isLoading = val;
@@ -22,39 +26,54 @@ class NotificationProvider with ChangeNotifier {
   }
 
   Future<void> loadNotifications() async {
-    try {
-      _setLoading(true);
-      _notifications = await _service.getNotifications();
-      _error = null;
-    } catch (e) {
-      _error = 'Failed to load notifications';
-    } finally {
-      _setLoading(false);
-    }
+    _setLoading(true);
+    await fetchNotifications();
+    _setLoading(false);
   }
 
   void startSync() {
+    _syncTimer?.cancel(); // Clear existing timers
     _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      fetchNotifications(); // re-fetch silently in background
+      fetchNotifications(); 
     });
   }
 
-  void stopSync() => _syncTimer?.cancel();
-
   Future<void> fetchNotifications() async {
     try {
-      _notifications = await _service.getNotifications();
+      final results = await _service.getNotifications();
+      _notifications = results;
       _error = null;
-      notifyListeners();
     } catch (e) {
-      _error = 'Failed to fetch notifications';
+      _error = 'Failed to sync notifications';
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> markRead(String id) async {
+    try {
+      await _service.markAsRead(id);
+      final index = _notifications.indexWhere((n) => n.id == id);
+      if (index != -1) {
+        // Optimistic UI update
+        _notifications[index] = AppNotification(
+          id: _notifications[index].id,
+          title: _notifications[index].title,
+          message: _notifications[index].message,
+          createdAt: _notifications[index].createdAt,
+          isRead: true,
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      _error = 'Could not update notification status';
       notifyListeners();
     }
   }
 
   @override
   void dispose() {
-    stopSync();
+    _syncTimer?.cancel();
     super.dispose();
   }
 }

@@ -59,12 +59,12 @@ class AuthService {
   }
 
   Future<void> register(Map<String, dynamic> data) async {
-    await _dio.post('/api/auth/register', data: data);
+    await _dio.post('$baseUrl/api/auth/register', data: data);
   }
 
   Future<void> verifyOtp(String email, String otp) async {
     final response = await _dio.post<Map<String, dynamic>>(
-      '/api/auth/verify-otp',
+      '$baseUrl/api/auth/verify-otp',
       data: {'email': email, 'otp': otp},
     );
     final data = response.data ?? {};
@@ -75,7 +75,7 @@ class AuthService {
   }
 
   Future<void> requestOtp(String email, String phone) async {
-    await _dio.post('/api/auth/request-otp', data: {'email': email, 'phone': phone});
+    await _dio.post('$baseUrl/api/auth/request-otp', data: {'email': email, 'phone': phone});
   }
 
   Future<void> forgotPassword(String email) async {
@@ -92,7 +92,7 @@ class AuthService {
 
   Future<UserModel> googleLogin(String idToken) async {
     final response = await _dio.post<Map<String, dynamic>>(
-      '/api/auth/google',
+      '$baseUrl/api/auth/google',
       data: {'idToken': idToken},
     );
     final data = response.data ?? {};
@@ -134,7 +134,7 @@ class AuthService {
   }
 
   Future<void> changePassword(String currentPassword, String newPassword) async {
-    await _dio.post('/api/auth/change-password', data: {
+    await _dio.post('$baseUrl/api/auth/change-password', data: {
       'current_password': currentPassword,
       'new_password': newPassword,
     });

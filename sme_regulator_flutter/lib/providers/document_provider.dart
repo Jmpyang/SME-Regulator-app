@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/document_model.dart';
 import '../repositories/document_repository.dart';
 import '../utils/error_handler.dart';
+import 'package:file_picker/file_picker.dart';
 
 class DocumentProvider with ChangeNotifier {
   final DocumentRepository _repository;
@@ -41,10 +42,15 @@ class DocumentProvider with ChangeNotifier {
   Future<void> uploadDocument({
     required String title,
     required String documentType,
+    required PlatformFile pickedFile,
   }) async {
     try {
       _setLoading(true);
-      await _repository.uploadDocument(title: title, documentType: documentType);
+      await _repository.uploadDocument(
+        title: title,
+        documentType: documentType,
+        pickedFile: pickedFile,
+      );
       await loadDocuments(); // Refresh the list
       _error = null;
     } catch (e) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import '../models/profile_model.dart';
 import '../services/profile_service.dart';
 import '../utils/error_handler.dart';
@@ -23,7 +24,8 @@ class ProfileProvider with ChangeNotifier {
     try {
       _profile = await _service.getProfile();
     } catch (e) {
-      _error = getErrorMessage(e);
+      // Use a robust error handler consistent with your Dio setup
+      _error = e is DioException ? friendlyError(e) : e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -37,14 +39,13 @@ class ProfileProvider with ChangeNotifier {
 
     try {
       _profile = await _service.updateProfile(data);
-      _isLoading = false;
-      notifyListeners();
       return true;
     } catch (e) {
-      _error = getErrorMessage(e);
+      _error = e is DioException ? friendlyError(e) : e.toString();
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 }

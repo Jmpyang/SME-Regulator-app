@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:dio/dio.dart';
 import '../providers/document_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/dashed_border_painter.dart';
@@ -64,7 +63,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                           Icons.error_outline,
                           size: 64,
                           color: Theme.of(context).colorScheme.error,
-                            ),
+                        ),
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () => context.read<DocumentProvider>().loadDocuments(),
@@ -79,219 +78,218 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      // Upload Card
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: InkWell(
-                          onTap: _showUploadBottomSheet,
-                          borderRadius: BorderRadius.circular(12),
-                          child: CustomPaint(
-                            painter: DashedBorderPainter(
-                              color: Colors.grey.shade300,
-                              strokeWidth: 1.5,
-                              dashWidth: 6,
-                              dashSpace: 4,
-                              borderRadius: 12,
+                          // Upload Card
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(32),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.cloud_upload_outlined,
-                                    size: 48,
-                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                            child: InkWell(
+                              onTap: _showUploadBottomSheet,
+                              borderRadius: BorderRadius.circular(12),
+                              child: CustomPaint(
+                                painter: DashedBorderPainter(
+                                  color: Colors.grey.shade300,
+                                  strokeWidth: 1.5,
+                                  dashWidth: 6,
+                                  dashSpace: 4,
+                                  borderRadius: 12,
+                                ),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(32),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.cloud_upload_outlined,
+                                        size: 48,
+                                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Tap to upload documents',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Supported formats: PDF, PNG, JPG',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Tap to upload documents',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Supported formats: PDF, PNG, JPG',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    const SizedBox(height: 32),
+                          const SizedBox(height: 32),
 
-                    if (provider.error != null)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        margin: const EdgeInsets.only(bottom: 24),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.errorContainer,
-                          border: Border.all(color: Theme.of(context).colorScheme.error),
-                          borderRadius: AppTheme.kCardRadius,
-                        ),
-                        child: Text(
-                          provider.error!,
-                          style: TextStyle(color: Theme.of(context).colorScheme.onError),
-                        ),
-                      ),
+                          if (provider.error != null)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              margin: const EdgeInsets.only(bottom: 24),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.errorContainer,
+                                border: Border.all(color: Theme.of(context).colorScheme.error),
+                                borderRadius: AppTheme.kCardRadius,
+                              ),
+                              child: Text(
+                                provider.error!,
+                                style: TextStyle(color: Theme.of(context).colorScheme.onError),
+                              ),
+                            ),
 
+                          const SizedBox(height: 24),
 
-                    const SizedBox(height: 24),
-
-                    // Records Card
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: AppTheme.kCardRadius,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                          // Records Card
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: AppTheme.kCardRadius,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Your Records',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF111827),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey.shade300),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Text(
-                                    '${documents.length} FILES',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey.shade500,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Divider(height: 1, color: Colors.grey.shade200),
-                          
-                          if (documents.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 80.0),
-                              child: Center(
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF9FAFB),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Icon(
-                                        Icons.insert_drive_file_outlined,
-                                        color: Colors.grey.shade300,
-                                        size: 40,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    const Text(
-                                      'No documents found.',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 16,
-                                        color: Color(0xFF111827),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Your compliance files will appear here once uploaded.',
-                                      style: TextStyle(
-                                        color: Colors.grey.shade500,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          else
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: documents.length,
-                              separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade200),
-                              itemBuilder: (context, index) {
-                                final doc = documents[index];
-                                return ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  leading: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEEF2FF),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(Icons.description, color: Color(0xFF4F46E5)),
-                                  ),
-                                  title: Text(
-                                    doc.title,
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Column(
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                                  child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        doc.uploadedAt.toLocal().toString().split(' ')[0],
+                                      const Text(
+                                        'Your Records',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF111827),
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 4),
-                                      _buildStatusChip(doc.status),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.grey.shade300),
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: Text(
+                                          '${documents.length} FILES',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey.shade500,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
-                                  trailing: IconButton(
-                                    icon: const Icon(Icons.download_rounded, color: Colors.blueGrey),
-                                    onPressed: () {
-                                      // Call download method
+                                ),
+                                Divider(height: 1, color: Colors.grey.shade200),
+
+                                if (documents.isEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 80.0),
+                                    child: Center(
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF9FAFB),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Icon(
+                                              Icons.insert_drive_file_outlined,
+                                              color: Colors.grey.shade300,
+                                              size: 40,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 24),
+                                          const Text(
+                                            'No documents found.',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 16,
+                                              color: Color(0xFF111827),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Your compliance files will appear here once uploaded.',
+                                            style: TextStyle(
+                                              color: Colors.grey.shade500,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: documents.length,
+                                    separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade200),
+                                    itemBuilder: (context, index) {
+                                      final doc = documents[index];
+                                      return ListTile(
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        leading: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEEF2FF),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Icon(Icons.description, color: Color(0xFF4F46E5)),
+                                        ),
+                                        title: Text(
+                                          doc.title,
+                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        subtitle: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              doc.uploadedAt.toLocal().toString().split(' ')[0],
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            _buildStatusChip(doc.status),
+                                          ],
+                                        ),
+                                        trailing: IconButton(
+                                          icon: const Icon(Icons.download_rounded, color: Colors.blueGrey),
+                                          onPressed: () {
+                                            // Call download method
+                                          },
+                                        ),
+                                      );
                                     },
                                   ),
-                                );
-                              },
+                              ],
                             ),
+                          ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+                  ),
+      ),
     );
   }
 
@@ -343,10 +341,10 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-           children: [
-             Icon(icon, size: 12, color: textColor),
-             const SizedBox(width: 4),
-             Text(
+          children: [
+            Icon(icon, size: 12, color: textColor),
+            const SizedBox(width: 4),
+            Text(
               text,
               style: TextStyle(
                 color: textColor,
@@ -361,7 +359,6 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
   }
 
   void _showManualReviewBottomSheet() {
-    // TODO: Implement manual review bottom sheet
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Manual review feature coming soon')),
     );
@@ -387,52 +384,45 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
     'Other',
   ];
 
-  bool _isFormValid() {
-    return _titleController.text.trim().isNotEmpty && 
-           _selectedType != null && 
-           _pickedFile != null;
-  }
+  bool _isFormValid() => 
+      _titleController.text.trim().isNotEmpty && 
+      _selectedType != null && 
+      _pickedFile != null;
 
   Future<void> _pickFile() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
-      withData: false,
-      withReadStream: false,
     );
     if (result != null) {
       setState(() => _pickedFile = result.files.single);
     }
   }
 
-  Future<void> _uploadDocument() async {
+  Future<void> _handleUpload() async {
     if (!_isFormValid()) return;
 
     setState(() => _isUploading = true);
     
     try {
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          _pickedFile!.path!,
-          filename: _pickedFile!.name,
-        ),
-        'title': _titleController.text.trim(),
-        'document_type': _selectedType,
-      });
-
-      final dio = Dio(BaseOptions(baseUrl: 'https://api.smeregulator.com'));
-      await dio.post('/api/vault/documents', data: formData);
+      // Use the provider instead of a local Dio instance
+      final provider = context.read<DocumentProvider>();
+      
+      // Assuming your provider has an upload method that calls DocumentService
+      await provider.uploadDocument(
+        title: _titleController.text.trim(),
+        documentType: _selectedType!,
+        pickedFile: _pickedFile!,
+      );
 
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Document uploaded. AI scanning in progress...'),
+            content: Text('Document uploaded successfully!'),
             backgroundColor: Colors.green,
           ),
         );
-        // Refresh the document list
-        context.read<DocumentProvider>().loadDocuments();
       }
     } catch (e) {
       if (mounted) {
@@ -444,9 +434,7 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isUploading = false);
-      }
+      if (mounted) setState(() => _isUploading = false);
     }
   }
 
@@ -455,77 +443,41 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 20,
-        right: 20,
-        top: 20,
+        left: 20, right: 20, top: 20,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Upload Document',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text('Upload Document', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
-          
-          // Title field
           TextField(
             controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Document Title',
-              hintText: 'Enter document title',
-              border: OutlineInputBorder(),
-            ),
+            onChanged: (_) => setState(() {}), // Refresh UI to validate button
+            decoration: const InputDecoration(labelText: 'Document Title', border: OutlineInputBorder()),
           ),
           const SizedBox(height: 16),
-          
-          // Document type dropdown
           DropdownButtonFormField<String>(
             initialValue: _selectedType,
-            decoration: const InputDecoration(
-              labelText: 'Document Type',
-              border: OutlineInputBorder(),
-            ),
-            items: _documentTypes.map((type) {
-              return DropdownMenuItem(value: type, child: Text(type));
-            }).toList(),
-            onChanged: (value) => setState(() => _selectedType = value),
+            decoration: const InputDecoration(labelText: 'Document Type', border: OutlineInputBorder()),
+            items: _documentTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+            onChanged: (val) => setState(() => _selectedType = val),
           ),
           const SizedBox(height: 16),
-          
-          // File picker button
-          OutlinedButton(
-            onPressed: _pickFile,
-            child: const Text('Browse Files'),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.attach_file),
+            title: Text(_pickedFile == null ? 'No file selected' : _pickedFile!.name),
+            trailing: TextButton(onPressed: _pickFile, child: const Text('Browse')),
           ),
-          const SizedBox(height: 8),
-          
-          // Selected file name
-          if (_pickedFile != null)
-            Text(
-              'Selected: ${_pickedFile!.name}',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 12,
-              ),
-            ),
           const SizedBox(height: 20),
-          
-          // Upload button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _isFormValid() && !_isUploading ? _uploadDocument : null,
-              child: _isUploading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Upload'),
+              onPressed: _isFormValid() && !_isUploading ? _handleUpload : null,
+              child: _isUploading 
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                : const Text('Upload to Vault'),
             ),
           ),
           const SizedBox(height: 20),
@@ -533,7 +485,6 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
       ),
     );
   }
-
 
   @override
   void dispose() {

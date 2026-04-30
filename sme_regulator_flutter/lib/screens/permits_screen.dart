@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:file_picker/file_picker.dart';
 import '../models/document_model.dart';
 import '../providers/document_provider.dart';
 import '../widgets/custom_app_bar.dart';
-import '../core/constants.dart';
 
-/// Prefer permit-like [DocumentModel.type] values; if none match, show full vault list.
+/// Filters documents to show only those relevant to permits and licenses
 List<DocumentModel> documentsForPermitsView(List<DocumentModel> all) {
-  final keywords = ['permit', 'license', 'cert', 'regulatory'];
+  final keywords = ['permit', 'license', 'cert', 'regulatory', 'tax', 'business'];
   final matched = all.where((d) {
     final t = d.type.toLowerCase();
-    return keywords.any((k) => t.contains(k));
+    final title = d.title.toLowerCase();
+    return keywords.any((k) => t.contains(k) || title.contains(k));
   }).toList();
-  return matched.isNotEmpty ? matched : all;
+  return matched;
 }
 
 class PermitsScreen extends StatefulWidget {
@@ -33,18 +33,31 @@ class _PermitsScreenState extends State<PermitsScreen> {
   }
 
   Future<void> _uploadPermit() async {
-    // Show dialog for title and document type input
-    final result = await showDialog<Map<String, String>>(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => _UploadDialog(),
+      builder: (context) => const _UploadDialog(),
     );
     
     if (result == null || !mounted) return;
     
+    final title = result['title'] as String?;
+    final documentType = result['documentType'] as String?;
+    final pickedFile = result['pickedFile'] as PlatformFile?;
+    
+    if (title == null || title.isEmpty || documentType == null || pickedFile == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all fields and select a file')),
+        );
+      }
+      return;
+    }
+    
     try {
       await context.read<DocumentProvider>().uploadDocument(
-        title: result['title']!,
-        documentType: result['documentType']!,
+        title: title,
+        documentType: documentType,
+        pickedFile: pickedFile,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,405 +75,211 @@ class _PermitsScreenState extends State<PermitsScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<DocumentProvider>();
     final documents = documentsForPermitsView(provider.documents);
-    final bool useTableLayout = MediaQuery.sizeOf(context).width >= 560;
+    final bool useTableLayout = MediaQuery.sizeOf(context).width >= 600;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       appBar: const CustomAppBar(title: 'Permits'),
       body: provider.isLoading && documents.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Page Title Area
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Regulatory Permits',
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.black,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Live tracking of your compliance status.',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.black54,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: TextButton.icon(
-                            style: TextButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            onPressed: _uploadPermit,
-                            icon: const Icon(Icons.add, size: 20),
-                            label: const Text(
-                              'New Upload',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Error Banner
-                    if (provider.error != null)
+          : RefreshIndicator(
+              onRefresh: () => provider.loadDocuments(),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 32),
+                      if (provider.error != null) _buildErrorBanner(provider.error!),
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        margin: const EdgeInsets.only(bottom: 24),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
-                          border: Border.all(color: const Color(0xFFFCA5A5)),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 20),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                provider.error!,
-                                style: const TextStyle(
-                                  color: Color(0xFFDC2626),
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    // Permits Table Card
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Table Header (wide layout only)
-                          if (useTableLayout) ...[
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildColumnHeader('DOCUMENT TITLE'),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildColumnHeader('TYPE'),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildColumnHeader('UPLOADED DATE'),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildColumnHeader('STATUS'),
-                                  ),
-                                  Expanded(
-                                    flex: 1,
-                                    child: Align(
-                                      alignment: Alignment.centerRight,
-                                      child: _buildColumnHeader('ACTIONS'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Divider(height: 1, color: Colors.grey.shade200),
-                          ],
-                          
-                          // States
-                          if (documents.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 80.0),
-                              child: Center(
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.find_in_page_outlined,
-                                      color: Colors.grey.shade300,
-                                      size: 48,
-                                    ),
-                                    const SizedBox(height: 24),
-                                    const Text(
-                                      'No active permits',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 16,
-                                        color: Color(0xFF111827),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Upload your compliance documents to start tracking.',
-                                      style: TextStyle(
-                                        color: Colors.grey.shade500,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             )
-                          else
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: documents.length,
-                              separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade200),
-                              itemBuilder: (context, index) {
-                                final doc = documents[index];
-                                if (!useTableLayout) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          doc.title,
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          doc.type.isNotEmpty ? doc.type : 'General',
-                                          style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          doc.uploadedAt.toLocal().toString().split(' ')[0],
-                                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Wrap(
-                                          spacing: 8,
-                                          runSpacing: 8,
-                                          crossAxisAlignment: WrapCrossAlignment.center,
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFFD1FAE5),
-                                                borderRadius: BorderRadius.circular(16),
-                                              ),
-                                              child: const Text(
-                                                'ACTIVE',
-                                                style: TextStyle(
-                                                  color: Color(0xFF059669),
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w900,
-                                                ),
-                                              ),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.download_rounded, color: Colors.blueGrey),
-                                              onPressed: () {},
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          doc.title,
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          doc.type.isNotEmpty ? doc.type : 'General',
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          doc.uploadedAt.toLocal().toString().split(' ')[0],
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFD1FAE5),
-                                              borderRadius: BorderRadius.circular(16),
-                                            ),
-                                            child: const Text(
-                                              'ACTIVE',
-                                              style: TextStyle(
-                                                color: Color(0xFF059669),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w900,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Align(
-                                          alignment: Alignment.centerRight,
-                                          child: IconButton(
-                                            icon: const Icon(Icons.download_rounded, color: Colors.blueGrey),
-                                            onPressed: () {},
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                        ],
+                          ],
+                        ),
+                        child: _buildDocumentList(documents, useTableLayout),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
     );
   }
 
-  Widget _buildColumnHeader(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w900,
-        color: Colors.blueGrey.shade400,
-        letterSpacing: 1.0,
-      ),
-    );
-  }
-}
-
-class _UploadDialog extends StatefulWidget {
-  @override
-  __UploadDialogState createState() => __UploadDialogState();
-}
-
-class __UploadDialogState extends State<_UploadDialog> {
-  final _titleController = TextEditingController();
-  String _selectedDocumentType = 'Permit';
-  
-  final List<String> _documentTypes = [
-    'Permit',
-    'License',
-    'Certificate',
-    'Registration',
-    ...kBusinessTypes,
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Upload Document'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Document Title',
-              hintText: 'Enter document title',
-            ),
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Regulatory Permits',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+              ),
+              Text(
+                'Live tracking of your compliance status.',
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            initialValue: _selectedDocumentType,
-            decoration: const InputDecoration(
-              labelText: 'Document Type',
-            ),
-            items: _documentTypes
-                .map((type) => DropdownMenuItem(
-                      value: type,
-                      child: Text(type),
-                    ))
-                .toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedDocumentType = value!;
-              });
-            },
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: () {
-            if (_titleController.text.isNotEmpty) {
-              Navigator.of(context).pop({
-                'title': _titleController.text,
-                'documentType': _selectedDocumentType,
-              });
-            }
-          },
-          child: const Text('Upload'),
+        ElevatedButton.icon(
+          onPressed: _uploadPermit,
+          icon: const Icon(Icons.add),
+          label: const Text('New Upload'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
         ),
       ],
     );
   }
 
+  Widget _buildDocumentList(List<DocumentModel> documents, bool useTable) {
+    if (documents.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 60),
+        child: Center(child: Text('No permits found. Upload one to begin.')),
+      );
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: documents.length,
+      separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+      itemBuilder: (context, index) {
+        final doc = documents[index];
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          title: Text(doc.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text('${doc.type} • ${doc.uploadedAt.toString().split(' ')[0]}'),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildStatusBadge(doc.status),
+              const SizedBox(width: 8),
+              const Icon(Icons.chevron_right),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color color;
+    switch (status.toLowerCase()) {
+      case 'verified': color = Colors.green; break;
+      case 'pending': color = Colors.orange; break;
+      case 'expired': color = Colors.red; break;
+      default: color = Colors.blueGrey;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner(String message) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8)),
+      child: Text(message, style: TextStyle(color: Colors.red.shade900)),
+    );
+  }
+}
+
+class _UploadDialog extends StatefulWidget {
+  const _UploadDialog();
   @override
-  void dispose() {
-    _titleController.dispose();
-    super.dispose();
+  State<_UploadDialog> createState() => _UploadDialogState();
+}
+
+class _UploadDialogState extends State<_UploadDialog> {
+  final _titleController = TextEditingController();
+  String _selectedType = 'Permit';
+  PlatformFile? _pickedFile;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Upload Permit'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _titleController,
+            decoration: const InputDecoration(labelText: 'Document Title'),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            initialValue: _selectedType,
+            items: ['Permit', 'License', 'Certificate', 'Tax Compliance']
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
+            onChanged: (v) => setState(() => _selectedType = v!),
+            decoration: const InputDecoration(labelText: 'Category'),
+          ),
+          const SizedBox(height: 16),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.attach_file),
+            title: Text(_pickedFile == null ? 'No file selected' : _pickedFile!.name),
+            trailing: TextButton(
+              onPressed: () async {
+                final result = await FilePicker.pickFiles(
+                  type: FileType.custom,
+                  allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
+                );
+                if (result != null) {
+                  setState(() => _pickedFile = result.files.single);
+                }
+              },
+              child: const Text('Browse'),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        ElevatedButton(
+          onPressed: () {
+            if (_titleController.text.isNotEmpty && _pickedFile != null) {
+              Navigator.pop(context, {
+                'title': _titleController.text,
+                'documentType': _selectedType,
+                'pickedFile': _pickedFile,
+              });
+            }
+          },
+          child: const Text('Confirm'),
+        ),
+      ],
+    );
   }
 }

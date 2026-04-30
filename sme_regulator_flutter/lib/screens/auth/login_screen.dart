@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/error_handler.dart';
@@ -31,10 +30,9 @@ class _LoginScreenState extends State<LoginScreen> {
       if (success && mounted) {
         Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
       } else if (mounted) {
-        final error = authProvider.error;
         SnackBarUtils.showError(
           context,
-          error ?? 'Login failed. Please check your credentials and try again.',
+          authProvider.error ?? 'Login failed. Please check your credentials.',
         );
       }
     } catch (e) {
@@ -42,6 +40,20 @@ class _LoginScreenState extends State<LoginScreen> {
         final errorMessage = e is DioException ? friendlyError(e) : getErrorMessage(e);
         SnackBarUtils.showError(context, errorMessage);
       }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.continueWithGoogle();
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+    } else if (authProvider.error != null) {
+      // We only show error if it wasn't a manual cancellation by the user
+      SnackBarUtils.showError(context, authProvider.error!);
     }
   }
 
@@ -77,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Theme.of(context).colorScheme.surface,
                     shape: BoxShape.circle,
                     boxShadow: [
-  BoxShadow(
+                      BoxShadow(
                         color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
@@ -109,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Email
+              // Email Field
               TextFormField(
                 controller: _email,
                 decoration: InputDecoration(
@@ -125,21 +137,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   prefixIcon: Icon(Icons.email_outlined, color: Colors.grey.shade600),
                   hintText: 'Enter your email',
-                  hintStyle: const TextStyle(color: Colors.black45),
                 ),
                 keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Email is required.';
-                  if (!v.contains('@')) return 'Please enter a valid email.';
-                  return null;
-                },
+                validator: (v) => (v == null || !v.contains('@')) ? 'Valid email required' : null,
               ),
               const SizedBox(height: 16),
 
-              // Password
+              // Password Field
               TextFormField(
                 controller: _password,
+                obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
@@ -152,23 +159,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderSide: BorderSide(color: AppTheme.kPrimaryColor, width: 1.5),
                   ),
                   prefixIcon: Icon(Icons.lock_outlined, color: Colors.grey.shade600),
-                  hintText: 'Enter your password',
-                  hintStyle: const TextStyle(color: Colors.black45),
                   suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                    ),
+                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
+                  hintText: 'Enter your password',
                 ),
-                obscureText: _obscurePassword,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _login(),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Password is required.';
-                  if (v.length < 8) return 'Password must be at least 8 characters.';
-                  return null;
-                },
+                validator: (v) => (v == null || v.length < 8) ? 'Min 8 characters' : null,
               ),
               const SizedBox(height: 16),
 
@@ -177,15 +174,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () => Navigator.pushNamed(context, AppRoutes.forgotPassword),
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
+                  child: const Text('Forgot Password?', style: TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(height: 32),
 
-              // Login button
+              // Login Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -193,63 +187,42 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.kPrimaryColor,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: const RoundedRectangleBorder(borderRadius: AppTheme.kButtonRadius),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (isLoading) ...[
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      const Text('Login'),
-                    ],
-                  ),
+                  child: isLoading 
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Login'),
                 ),
               ),
               const SizedBox(height: 32),
 
-              // Google Sign-In
+              // Google Sign-In Button
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: isLoading ? null : _handleGoogleSignIn,
-                  icon: const Icon(Icons.g_mobiledata),
+                  icon: const Icon(Icons.g_mobiledata, size: 30),
                   label: const Text('Continue with Google'),
                   style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
+                    minimumSize: const Size(double.infinity, 54),
                     shape: const RoundedRectangleBorder(borderRadius: AppTheme.kButtonRadius),
                     side: BorderSide(color: Colors.grey.shade300),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
-              // Register link
+              // Register Link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    "Don't have an account? ",
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
+                  Text("Don't have an account? ", style: TextStyle(color: Colors.grey.shade600)),
                   GestureDetector(
                     onTap: () => Navigator.pushNamed(context, AppRoutes.register),
                     child: const Text(
                       'Create one',
-                      style: TextStyle(
-                        color: AppTheme.kPrimaryColor,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                      ),
+                      style: TextStyle(color: AppTheme.kPrimaryColor, fontWeight: FontWeight.w600, decoration: TextDecoration.underline),
                     ),
                   ),
                 ],
@@ -259,25 +232,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _handleGoogleSignIn() async {
-    try {
-      final googleSignIn = GoogleSignIn(scopes: ['email']);
-      final googleUser = await googleSignIn.signIn();
-      if (googleUser == null) return;
-
-      final googleAuth = await googleUser.authentication;
-      final authProvider = context.read<AuthProvider>();
-      await authProvider.loginWithGoogle(googleAuth.idToken ?? '');
-
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
-      }
-    } catch (e) {
-      if (mounted) {
-        SnackBarUtils.showError(context, 'Google Sign-In failed: ${e.toString()}');
-      }
-    }
   }
 }

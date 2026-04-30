@@ -1,5 +1,5 @@
+import '../services/base_service.dart';
 import '../models/dashboard_summary_model.dart';
-import 'base_service.dart';
 
 class DashboardService extends BaseService {
   DashboardService(super.dio);

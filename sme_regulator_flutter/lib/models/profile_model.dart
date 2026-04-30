@@ -6,21 +6,23 @@ part 'profile_model.g.dart';
 class ProfileModel {
   final String id;
   final String email;
-  @JsonKey(name: 'first_name')
+  @JsonKey(name: 'first_name', defaultValue: '')
   final String firstName;
-  @JsonKey(name: 'last_name')
+  @JsonKey(name: 'last_name', defaultValue: '')
   final String lastName;
+  @JsonKey(defaultValue: '')
   final String phone;
-  @JsonKey(name: 'job_title')
+  @JsonKey(name: 'job_title', defaultValue: '')
   final String jobTitle;
-  @JsonKey(name: 'business_name')
+  @JsonKey(name: 'business_name', defaultValue: '')
   final String businessName;
-  @JsonKey(name: 'kra_pin')
+  @JsonKey(name: 'kra_pin', defaultValue: '')
   final String kraPin;
-  @JsonKey(name: 'business_type')
+  @JsonKey(name: 'business_type', defaultValue: '')
   final String businessType;
+  @JsonKey(defaultValue: '')
   final String county;
-  @JsonKey(name: 'is_verified')
+  @JsonKey(name: 'is_verified', defaultValue: false)
   final bool isVerified;
 
   ProfileModel({
@@ -37,20 +39,8 @@ class ProfileModel {
     this.isVerified = false,
   });
 
-  factory ProfileModel.fromJson(Map<String, dynamic> json) {
-    return ProfileModel(
-      id: (json['id'] as String?) ?? '',
-      email: (json['email'] as String?) ?? '',
-      firstName: (json['first_name'] as String?) ?? '',
-      lastName: (json['last_name'] as String?) ?? '',
-      phone: (json['phone'] as String?) ?? '',
-      jobTitle: (json['job_title'] as String?) ?? '',
-      businessName: (json['business_name'] as String?) ?? '',
-      kraPin: (json['kra_pin'] as String?) ?? '',
-      businessType: (json['business_type'] as String?) ?? '',
-      county: (json['county'] as String?) ?? '',
-      isVerified: (json['is_verified'] as bool?) ?? false,
-    );
-  }
+  // Use the generated factory exclusively to respect @JsonKey and default values
+  factory ProfileModel.fromJson(Map<String, dynamic> json) => _$ProfileModelFromJson(json);
+  
   Map<String, dynamic> toJson() => _$ProfileModelToJson(this);
 }
