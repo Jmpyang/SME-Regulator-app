@@ -32,8 +32,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final compliance = dashboardProvider.compliance;
     final bool isSmallScreen = MediaQuery.sizeOf(context).width < 600;
 
-    final displayName = user?.name.isNotEmpty == true ? user!.name : 
-                        user?.email.isNotEmpty == true ? user!.email : 'User';
+    // Extract first name from user's name
+    String getFirstName(String fullName) {
+      final parts = fullName.trim().split(' ');
+      return parts.isNotEmpty ? parts[0] : fullName;
+    }
+    
+    final displayName = user?.name.isNotEmpty == true 
+        ? getFirstName(user!.name) 
+        : user?.email.isNotEmpty == true 
+            ? user!.email.split('@')[0] 
+            : 'User';
     final email = user?.email.isNotEmpty == true ? user!.email : null;
 
     // Use compliance data
@@ -173,11 +182,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    'COMPLIANCE CATEGORIES',
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: AppTheme.kFontWeightBlack,
-                                      letterSpacing: 0.5,
+                                  Expanded(
+                                    child: Text(
+                                      'COMPLIANCE CATEGORIES',
+                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                        fontWeight: AppTheme.kFontWeightBlack,
+                                        letterSpacing: 0.5,
+                                      ),
                                     ),
                                   ),
                                   Container(
