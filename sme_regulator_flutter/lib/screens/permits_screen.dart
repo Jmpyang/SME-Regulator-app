@@ -24,11 +24,17 @@ class PermitsScreen extends StatefulWidget {
 }
 
 class _PermitsScreenState extends State<PermitsScreen> {
+  bool _hasLoaded = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DocumentProvider>().loadDocuments();
+      context.read<DocumentProvider>().loadDocuments().then((_) {
+        if (mounted) setState(() => _hasLoaded = true);
+      }).catchError((_) {
+        if (mounted) setState(() => _hasLoaded = true);
+      });
     });
   }
 
@@ -80,11 +86,33 @@ class _PermitsScreenState extends State<PermitsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       appBar: const CustomAppBar(title: 'Permits'),
-      body: provider.isLoading && documents.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => provider.loadDocuments(),
-              child: SingleChildScrollView(
+      body: RefreshIndicator(
+              onRefresh: () async {
+                setState(() => _hasLoaded = false);
+                await provider.loadDocuments();
+                if (mounted) setState(() => _hasLoaded = true);
+              },
+              child: !_hasLoaded
+                  ? const Center(child: CircularProgressIndicator())
+                  : provider.error != null && documents.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 64,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => provider.loadDocuments(),
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        )
+          : SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
