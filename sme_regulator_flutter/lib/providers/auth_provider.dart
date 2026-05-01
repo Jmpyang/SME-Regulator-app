@@ -163,4 +163,11 @@ class AuthProvider with ChangeNotifier {
     _user = null;
     notifyListeners();
   }
+
+  void updateUserName({required String firstName, required String lastName}) {
+    if (_user != null) {
+      _user = _user!.copyWith(name: '$firstName $lastName');
+      notifyListeners();
+    }
+  }
 }

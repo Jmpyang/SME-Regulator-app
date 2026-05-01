@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:open_file/open_file.dart';
 import '../providers/document_provider.dart';
+import '../providers/profile_provider.dart';
 import '../widgets/custom_app_bar.dart';
-import '../widgets/dashed_border_painter.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/dashed_border_painter.dart';
 import '../core/theme.dart';
 
 class DocumentVaultScreen extends StatefulWidget {
@@ -15,18 +17,24 @@ class DocumentVaultScreen extends StatefulWidget {
 }
 
 class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
+  bool _hasLoaded = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DocumentProvider>().loadDocuments();
+      context.read<DocumentProvider>().loadDocuments().then((_) {
+        if (mounted) setState(() => _hasLoaded = true);
+      }).catchError((_) {
+        if (mounted) setState(() => _hasLoaded = true);
+      });
       context.read<DocumentProvider>().startSync();
     });
   }
 
   @override
   void dispose() {
-    context.read<DocumentProvider>().stopSync();
+    // Don't use context.read in dispose as it causes widget disposal errors
     super.dispose();
   }
 
@@ -44,127 +52,201 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DocumentProvider>();
+    final profileProvider = context.watch<ProfileProvider>();
     final documents = provider.documents;
+    final profile = profileProvider.profile;
+
+    // Check if profile is incomplete (missing business_type)
+    final isProfileIncomplete = profile?.businessType == null || profile!.businessType.isEmpty;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: const CustomAppBar(title: 'Document Vault'),
       drawer: const AppDrawer(),
       body: RefreshIndicator(
-        onRefresh: () async => await context.read<DocumentProvider>().loadDocuments(),
-        child: provider.isLoading && documents.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : provider.error != null && documents.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => context.read<DocumentProvider>().loadDocuments(),
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  )
-                : SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+        onRefresh: () async {
+          setState(() => _hasLoaded = false);
+          await context.read<DocumentProvider>().loadDocuments();
+          if (mounted) setState(() => _hasLoaded = true);
+        },
+        child: Column(
+          children: [
+            // Incomplete profile banner
+            if (isProfileIncomplete)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                color: Colors.orange.shade100,
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.orange.shade800),
+                    const SizedBox(width: 12),
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Upload Card
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
+                          Text(
+                            'Profile Incomplete',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade900,
                             ),
-                            child: InkWell(
-                              onTap: _showUploadBottomSheet,
-                              borderRadius: BorderRadius.circular(12),
-                              child: CustomPaint(
-                                painter: DashedBorderPainter(
-                                  color: Colors.grey.shade300,
-                                  strokeWidth: 1.5,
-                                  dashWidth: 6,
-                                  dashSpace: 4,
-                                  borderRadius: 12,
-                                ),
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(32),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.cloud_upload_outlined,
-                                        size: 48,
-                                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Tap to upload documents',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Supported formats: PDF, PNG, JPG',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black54,
-                                        ),
-                                      ),
-                                    ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Update your profile to see specific compliance requirements for your business type.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.orange.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/profile');
+                      },
+                      child: Text(
+                        'Update Profile',
+                        style: TextStyle(
+                          color: Colors.orange.shade900,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _buildContent(context, provider, documents, isProfileIncomplete, profile),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, DocumentProvider provider, dynamic documents, bool isProfileIncomplete, dynamic profile) {
+    return !_hasLoaded
+        ? const Center(child: CircularProgressIndicator())
+        : provider.error != null && documents.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => context.read<DocumentProvider>().loadDocuments(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+            : SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Upload Card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: InkWell(
+                          onTap: _showUploadBottomSheet,
+                          borderRadius: BorderRadius.circular(12),
+                          child: CustomPaint(
+                            painter: DashedBorderPainter(
+                              color: Theme.of(context).colorScheme.outlineVariant,
+                              strokeWidth: 1.5,
+                              dashWidth: 6,
+                              dashSpace: 4,
+                              borderRadius: 12,
+                            ),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(32),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.cloud_upload_outlined,
+                                    size: 48,
+                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                                   ),
-                                ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Tap to upload documents',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Supported formats: PDF, PNG, JPG',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: 32),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
 
-                          if (provider.error != null)
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              margin: const EdgeInsets.only(bottom: 24),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.errorContainer,
-                                border: Border.all(color: Theme.of(context).colorScheme.error),
-                                borderRadius: AppTheme.kCardRadius,
-                              ),
-                              child: Text(
-                                provider.error!,
-                                style: TextStyle(color: Theme.of(context).colorScheme.onError),
-                              ),
-                            ),
+                      if (provider.error != null)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(bottom: 24),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.errorContainer,
+                            border: Border.all(color: Theme.of(context).colorScheme.error),
+                            borderRadius: AppTheme.kCardRadius,
+                          ),
+                          child: Text(
+                            provider.error!,
+                            style: TextStyle(color: Theme.of(context).colorScheme.onError),
+                          ),
+                        ),
 
-                          const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                          // Records Card
-                          Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: AppTheme.kCardRadius,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                      // Records Card
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: AppTheme.kCardRadius,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         'Your Records',
@@ -180,7 +262,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                         decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.grey.shade300),
+                                          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                                           borderRadius: BorderRadius.circular(16),
                                         ),
                                         child: Text(
@@ -188,7 +270,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.grey.shade500,
+                                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                                             letterSpacing: 0.5,
                                           ),
                                         ),
@@ -196,7 +278,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                     ],
                                   ),
                                 ),
-                                Divider(height: 1, color: Colors.grey.shade200),
+                                Divider(height: 1, color: Theme.of(context).colorScheme.outlineVariant),
 
                                 if (documents.isEmpty)
                                   Padding(
@@ -212,7 +294,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                             ),
                                             child: Icon(
                                               Icons.insert_drive_file_outlined,
-                                              color: Colors.grey.shade300,
+                                              color: Theme.of(context).colorScheme.outlineVariant,
                                               size: 40,
                                             ),
                                           ),
@@ -229,7 +311,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                           Text(
                                             'Your compliance files will appear here once uploaded.',
                                             style: TextStyle(
-                                              color: Colors.grey.shade500,
+                                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                                               fontSize: 14,
                                             ),
                                           ),
@@ -242,7 +324,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                     shrinkWrap: true,
                                     physics: const NeverScrollableScrollPhysics(),
                                     itemCount: documents.length,
-                                    separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade200),
+                                    separatorBuilder: (context, index) => Divider(height: 1, color: Theme.of(context).colorScheme.outlineVariant),
                                     itemBuilder: (context, index) {
                                       final doc = documents[index];
                                       return ListTile(
@@ -275,8 +357,26 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                                         ),
                                         trailing: IconButton(
                                           icon: const Icon(Icons.download_rounded, color: Colors.blueGrey),
-                                          onPressed: () {
-                                            // Call download method
+                                          onPressed: () async {
+                                            try {
+                                              final provider = context.read<DocumentProvider>();
+                                              final filePath = await provider.downloadDocument(doc.id, doc.title);
+                                              if (mounted) {
+                                                // Open the downloaded file
+                                                final result = await OpenFile.open(filePath);
+                                                if (result.type != ResultType.done) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Document downloaded successfully')),
+                                                  );
+                                                }
+                                              }
+                                            } catch (e) {
+                                              if (mounted) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(content: Text('Download failed: ${e.toString()}')),
+                                                );
+                                              }
+                                            }
                                           },
                                         ),
                                       );
@@ -288,9 +388,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                         ],
                       ),
                     ),
-                  ),
-      ),
-    );
+                  );
   }
 
   Widget _buildStatusChip(String status) {
@@ -325,8 +423,8 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
         icon = Icons.error;
         break;
       default:
-        backgroundColor = Colors.grey.shade100;
-        textColor = Colors.grey.shade800;
+        backgroundColor = Theme.of(context).colorScheme.surfaceContainerHighest;
+        textColor = Theme.of(context).colorScheme.onSurfaceVariant;
         text = 'Processing';
         icon = Icons.hourglass_empty;
     }
@@ -417,12 +515,24 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Document uploaded successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        
+        // Show email notification feedback
+        final emailStatus = provider.emailNotificationStatus;
+        if (emailStatus == 'failed') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Document uploaded successfully, but email notification failed'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Document uploaded successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

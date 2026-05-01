@@ -11,19 +11,23 @@ class DocumentRepository {
     return await _documentService.fetchDocuments();
   }
 
-  Future<void> uploadDocument({
+  Future<bool> uploadDocument({
     required String title,
     required String documentType,
     required PlatformFile pickedFile,
   }) async {
-    await _documentService.uploadDocument(
+    return await _documentService.uploadDocument(
       title: title,
       documentType: documentType,
       pickedFile: pickedFile,
     );
   }
 
-  Future<List<int>> downloadDocument(String id) async {
-    return await _documentService.downloadDocument(id);
+  Future<void> processDocumentForAI(String documentId) async {
+    await _documentService.processDocumentForAI(documentId);
+  }
+
+  Future<String> downloadDocument(String id, String fileName) async {
+    return await _documentService.downloadDocument(id, fileName);
   }
 }

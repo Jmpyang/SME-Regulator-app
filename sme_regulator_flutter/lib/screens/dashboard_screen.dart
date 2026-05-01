@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
+import '../models/compliance_model.dart';
 import '../routes/app_routes.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/app_drawer.dart';
@@ -28,12 +29,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().user;
     final dashboardProvider = context.watch<DashboardProvider>();
-    final summary = dashboardProvider.summary;
+    final compliance = dashboardProvider.compliance;
     final bool isSmallScreen = MediaQuery.sizeOf(context).width < 600;
 
     final displayName = user?.name.isNotEmpty == true ? user!.name : 
                         user?.email.isNotEmpty == true ? user!.email : 'User';
     final email = user?.email.isNotEmpty == true ? user!.email : null;
+
+    // Use compliance data
+    final complianceScore = compliance?.score ?? 0;
+    final activePermits = compliance?.completed ?? 0;
+    final missingExpired = compliance != null 
+        ? compliance.totalRequired - compliance.completed 
+        : 0;
+    final requiredCategories = compliance?.totalRequired ?? 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
@@ -56,20 +65,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           Wrap(
                             children: [
-                              const Text(
+                              Text(
                                 'Welcome back, ',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF111827),
-                                ),
+                                style: Theme.of(context).textTheme.headlineSmall,
                               ),
                               Text(
                                 displayName,
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF4F46E5),
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                               ),
                             ],
@@ -79,10 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             email == null
                                 ? 'Here is your real-time compliance status.'
                                 : 'Signed in as $email',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],
                       ),
@@ -128,43 +128,90 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           _buildInfoCard(
                             'COMPLIANCE SCORE',
-                            '${summary?.complianceScore ?? 0}%',
+                            '$complianceScore%',
                             Icons.shield_outlined,
-                            _getComplianceScoreColor((summary?.complianceScore ?? 0).toDouble()), // Color-coded based on score
-                            const Color(0xFF4F46E5), // Indigo icon bg
+                            _getComplianceScoreColor(complianceScore.toDouble()),
+                            Theme.of(context).colorScheme.primary,
                           ),
                           _buildInfoCard(
                             'ACTIVE PERMITS',
-                            '${summary?.activePermits ?? 0}',
+                            '$activePermits',
                             Icons.shield_outlined,
-                            const Color(0xFF4F46E5), // Indigo
-                            const Color(0xFF4F46E5), // Indigo icon bg
+                            Theme.of(context).colorScheme.primary,
+                            Theme.of(context).colorScheme.primary,
                           ),
                           _buildInfoCard(
                             'MISSING / EXPIRED',
-                            '${summary?.missingExpired ?? 0}',
+                            '$missingExpired',
                             Icons.warning_amber_rounded,
-                            const Color(0xFFE11D48), // Red
-                            const Color(0xFFE11D48), // Red icon bg
+                            Theme.of(context).colorScheme.error,
+                            Theme.of(context).colorScheme.error,
                           ),
                           _buildInfoCard(
                             'REQUIRED CATEGORIES',
-                            '${summary?.requiredCategories ?? 0}',
+                            '$requiredCategories',
                             Icons.description_outlined,
-                            const Color(0xFF111827), // Black
-                            Colors.blueGrey, // Grey icon bg
+                            Theme.of(context).colorScheme.onSurface,
+                            Colors.blueGrey,
                           ),
                         ],
                       ),
                       const SizedBox(height: 24),
 
-                      // Bottom Large Card
+                      // Compliance Categories Section
+                      if (compliance != null)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: AppTheme.kCardRadius,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'COMPLIANCE CATEGORIES',
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      fontWeight: AppTheme.kFontWeightBlack,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: _getRiskLevelColor(compliance.riskLevel),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Text(
+                                      compliance.riskLevel.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: AppTheme.kFontWeightBold,
+                                        color: Colors.white,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              ...compliance.categories.map((category) => _buildCategoryItem(category)),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 24),
+
+                      // Bottom Large Card - Expiring Documents
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: AppTheme.kCardRadius,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,35 +222,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               spacing: 8,
                               runSpacing: 8,
                               children: [
-                                const Text(
-                                  'PRIORITY RENEWALS (90 DAYS)',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF111827),
+                                Text(
+                                  'EXPIRING DOCUMENTS (90 DAYS)',
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: AppTheme.kFontWeightBlack,
                                     letterSpacing: 0.5,
                                   ),
                                 ),
-                                if ((summary?.upcomingExpiries.length ?? 0) > 0)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.grey.shade300),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Text(
-                                      'ACTION REQUIRED',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey.shade500,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ),
                               ],
                             ),
                             const SizedBox(height: 24),
-                            if (summary == null || summary.upcomingExpiries.isEmpty)
+                            if (compliance == null)
+                              const Center(child: CircularProgressIndicator())
+                            else if (_getExpiringDocuments(compliance).isEmpty)
                               Center(
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(vertical: 32.0),
@@ -211,32 +242,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.all(16),
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFFECFDF5),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).colorScheme.success.withValues(alpha: 0.1),
                                           shape: BoxShape.circle,
                                         ),
-                                        child: const Icon(
+                                        child: Icon(
                                           Icons.check_circle_outline,
-                                          color: Color(0xFF059669),
+                                          color: Theme.of(context).colorScheme.success,
                                           size: 32,
                                         ),
                                       ),
                                       const SizedBox(height: 16),
-                                      const Text(
+                                      Text(
                                         'Compliance Maintained',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w900,
-                                          fontSize: 18,
-                                          color: Color(0xFF111827),
-                                        ),
+                                        style: Theme.of(context).textTheme.headlineSmall,
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
                                         'No documents are expiring in the next 90 days.',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade500,
-                                          fontSize: 14,
-                                        ),
+                                        style: Theme.of(context).textTheme.bodyMedium,
                                         textAlign: TextAlign.center,
                                       ),
                                     ],
@@ -247,36 +271,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ListView.separated(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                                itemCount: summary.upcomingExpiries.length,
+                                itemCount: _getExpiringDocuments(compliance).length,
                                 separatorBuilder: (context, index) => const Divider(),
                                 itemBuilder: (context, index) {
-                                  final r = summary.upcomingExpiries[index];
-                                  final urgent = r.daysRemaining <= 30;
+                                  final doc = _getExpiringDocuments(compliance)[index];
+                                  final urgent = doc.daysToExpiry != null && doc.daysToExpiry! <= 30;
                                   return ListTile(
                                     contentPadding: EdgeInsets.zero,
                                     leading: Icon(
                                       urgent ? Icons.warning_amber_rounded : Icons.info_outline,
-                                      color: urgent ? const Color(0xFFE11D48) : const Color(0xFF4F46E5),
+                                      color: urgent ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
                                     ),
                                     title: Text(
-                                      r.title,
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      doc.title,
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: AppTheme.kFontWeightSemiBold,
+                                      ),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     subtitle: Text(
-                                      '${r.documentType} · Expires in ${r.daysRemaining} days',
+                                      '${doc.type} · ${doc.daysToExpiry != null ? "Expires in ${doc.daysToExpiry} days" : "Expiry date unknown"}',
+                                      style: Theme.of(context).textTheme.bodyMedium,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     trailing: isSmallScreen
                                         ? null
-                                        : Text(
-                                            r.expiryDate.toLocal().toString().split(' ')[0],
-                                            style: TextStyle(color: Colors.grey.shade500),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                        : doc.expiryDate != null
+                                            ? Text(
+                                                doc.expiryDate!.toLocal().toString().split(' ')[0],
+                                                style: Theme.of(context).textTheme.bodySmall,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              )
+                                            : null,
                                   );
                                 },
                               ),
@@ -286,21 +315,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               height: 54,
                               child: TextButton(
                                 style: TextButton.styleFrom(
-                                  backgroundColor: const Color(0xFFEEF2FF),
+                                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
                                 onPressed: () {
-                                  Navigator.pushNamed(context, AppRoutes.permits);
+                                  Navigator.pushNamed(context, AppRoutes.documentVault);
                                 },
-                                child: const Text(
-                                  'MANAGE ALL PERMITS →',
-                                  style: TextStyle(
-                                    color: Color(0xFF4F46E5),
-                                    fontWeight: FontWeight.bold,
+                                child: Text(
+                                  'MANAGE ALL DOCUMENTS →',
+                                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: AppTheme.kFontWeightSemiBold,
                                     letterSpacing: 1.0,
-                                    fontSize: 12,
                                   ),
                                 ),
                               ),
@@ -398,5 +426,94 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (score <= 40) return Colors.red;
     if (score <= 70) return Colors.orange;
     return Colors.green;
+  }
+
+  Color _getRiskLevelColor(String riskLevel) {
+    switch (riskLevel.toLowerCase()) {
+      case 'low':
+        return Colors.green;
+      case 'medium':
+        return Colors.orange;
+      case 'high':
+        return Colors.red;
+      case 'critical':
+        return Colors.red.shade900;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  List<DocumentData> _getExpiringDocuments(ComplianceModel compliance) {
+    final allDocs = compliance.categories.expand((cat) => cat.uploadedDocuments).toList();
+    return allDocs.where((doc) {
+      if (doc.daysToExpiry == null) return false;
+      return doc.daysToExpiry! <= 90 && doc.daysToExpiry! > 0;
+    }).toList()
+      ..sort((a, b) => (a.daysToExpiry ?? 0).compareTo(b.daysToExpiry ?? 0));
+  }
+
+  Widget _buildCategoryItem(ComplianceCategory category) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: category.isCompleted ? const Color(0xFFF0FDF4) : const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: category.isCompleted ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: category.isCompleted ? const Color(0xFF22C55E).withOpacity(0.2) : const Color(0xFFEF4444).withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              category.isCompleted ? Icons.check_circle : Icons.error,
+              color: category.isCompleted ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  category.description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                if (category.uploadedDocuments.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '${category.uploadedDocuments.length} document(s) uploaded',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

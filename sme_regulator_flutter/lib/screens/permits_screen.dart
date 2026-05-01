@@ -66,9 +66,21 @@ class _PermitsScreenState extends State<PermitsScreen> {
         pickedFile: pickedFile,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Permit uploaded successfully')),
-      );
+      
+      // Show email notification feedback
+      final emailStatus = context.read<DocumentProvider>().emailNotificationStatus;
+      if (emailStatus == 'failed') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Document uploaded successfully, but email notification failed'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permit uploaded successfully')),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

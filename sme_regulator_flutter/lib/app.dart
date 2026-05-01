@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
 import 'routes/app_routes.dart';
 import 'utils/performance_utils.dart';
@@ -15,15 +14,6 @@ class SmeRegulatorApp extends StatefulWidget {
 }
 
 class _SmeRegulatorAppState extends State<SmeRegulatorApp> {
-  @override
-  void initState() {
-    super.initState();
-    // Attempt auto-login using stored token
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthProvider>().checkAuthStatus();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(

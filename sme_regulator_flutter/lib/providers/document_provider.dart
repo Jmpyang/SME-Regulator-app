@@ -12,12 +12,14 @@ class DocumentProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   Timer? _syncTimer;
+  String? _emailNotificationStatus;
 
   DocumentProvider(this._repository);
 
   List<DocumentModel> get documents => _documents;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String? get emailNotificationStatus => _emailNotificationStatus;
 
   void _setLoading(bool val) {
     _isLoading = val;
@@ -46,13 +48,33 @@ class DocumentProvider with ChangeNotifier {
   }) async {
     try {
       _setLoading(true);
-      await _repository.uploadDocument(
+      _emailNotificationStatus = null;
+      
+      final emailNotificationSent = await _repository.uploadDocument(
         title: title,
         documentType: documentType,
         pickedFile: pickedFile,
       );
+      
+      // Set email notification status for UI feedback
+      _emailNotificationStatus = emailNotificationSent ? 'sent' : 'failed';
+      
       await loadDocuments(); // Refresh the list
       _error = null;
+      
+      // Call AI processing for date extraction after successful upload
+      if (_documents.isNotEmpty) {
+        final uploadedDoc = _documents.firstWhere(
+          (doc) => doc.title == title,
+          orElse: () => _documents.last,
+        );
+        try {
+          await _repository.processDocumentForAI(uploadedDoc.id);
+        } catch (e) {
+          print('AI processing failed: $e');
+          // Don't fail the upload if AI processing fails
+        }
+      }
     } catch (e) {
       _error = getErrorMessage(e);
       rethrow;
@@ -78,6 +100,16 @@ class DocumentProvider with ChangeNotifier {
     } catch (e) {
       _error = getErrorMessage(e);
       notifyListeners();
+    }
+  }
+
+  Future<String> downloadDocument(String id, String fileName) async {
+    try {
+      final filePath = await _repository.downloadDocument(id, fileName);
+      return filePath;
+    } catch (e) {
+      _error = getErrorMessage(e);
+      rethrow;
     }
   }
 

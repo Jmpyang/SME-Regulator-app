@@ -60,8 +60,10 @@ class NotificationProvider with ChangeNotifier {
           id: _notifications[index].id,
           title: _notifications[index].title,
           message: _notifications[index].message,
+          type: _notifications[index].type,
           createdAt: _notifications[index].createdAt,
           isRead: true,
+          documentId: _notifications[index].documentId,
         );
         notifyListeners();
       }

@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../config/app_config.dart';
 import '../utils/token_storage.dart';
 
-/// Shared [Dio] instance with JWT [Authorization] header from [SharedPreferences].
+/// Shared [Dio] instance with JWT [Authorization] header from FlutterSecureStorage.
 class ApiClient {
-  ApiClient(SharedPreferences prefs) : _prefs = prefs {
+  ApiClient() : _storage = const FlutterSecureStorage() {
     dio = Dio(
       BaseOptions(
         baseUrl: AppConfig.baseUrl,
@@ -15,14 +15,15 @@ class ApiClient {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
       ),
     );
 
     dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
-          final token = _prefs.getString(TokenStorage.jwtKey);
+        onRequest: (options, handler) async {
+          final token = await _storage.read(key: TokenStorage.jwtKey);
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
@@ -30,7 +31,7 @@ class ApiClient {
         },
         onError: (DioException e, handler) async {
           if (e.response?.statusCode == 401) {
-            await _prefs.remove(TokenStorage.jwtKey);
+            await _storage.delete(key: TokenStorage.jwtKey);
           }
           return handler.next(e);
         },
@@ -38,6 +39,6 @@ class ApiClient {
     );
   }
 
-  final SharedPreferences _prefs;
+  final FlutterSecureStorage _storage;
   late final Dio dio;
 }

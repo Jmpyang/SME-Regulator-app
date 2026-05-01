@@ -11,10 +11,9 @@ import 'providers/knowledge_provider.dart';
 import 'providers/loading_provider.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/document_repository.dart';
-import 'repositories/reminder_repository.dart';
 import 'services/dashboard_service.dart';
 import 'services/document_service.dart';
-import 'services/reminder_service.dart';
+import 'services/notification_service.dart';
 import 'services/profile_service.dart';
 import 'services/knowledge_service.dart';
 
@@ -35,7 +34,8 @@ Future<void> tryAutoLogin(AuthProvider auth) async {
     try {
       // Validate token by hitting a lightweight endpoint
       await dio.get('/api/profile/');
-      // Token is valid, AuthProvider will handle user state through checkAuthStatus
+      // Token is valid, set user state in AuthProvider
+      await auth.checkAuthStatus();
     } catch (_) {
       // Token expired or invalid — send to login
       await const FlutterSecureStorage().deleteAll();
@@ -66,10 +66,10 @@ void main() async {
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => LoadingProvider()),
-        ChangeNotifierProvider(create: (_) => DashboardProvider(DashboardService(dio), LoadingProvider())),
         ChangeNotifierProvider(create: (_) => DocumentProvider(DocumentRepository(DocumentService(dio)))),
-        ChangeNotifierProvider(create: (_) => ReminderProvider(ReminderRepository(ReminderService(dio)))),
-        ChangeNotifierProvider(create: (_) => ProfileProvider(ProfileService(dio))),
+        ChangeNotifierProvider(create: (_) => ProfileProvider(ProfileService(dio), authProvider)),
+        ChangeNotifierProvider(create: (context) => DashboardProvider(DashboardService(dio), context.read<LoadingProvider>(), context.read<DocumentProvider>(), context.read<ProfileProvider>())),
+        ChangeNotifierProvider(create: (context) => ReminderProvider(context.read<DashboardProvider>(), NotificationService(dio))),
         ChangeNotifierProvider(create: (_) => KnowledgeProvider(KnowledgeService(dio))),
       ],
       child: SmeRegulatorApp(),

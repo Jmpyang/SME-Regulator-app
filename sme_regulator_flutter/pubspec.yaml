@@ -20,6 +20,8 @@ dependencies:
   cached_network_image: ^3.3.0
   google_sign_in: ^6.2.1
   shimmer: ^3.0.0
+  path_provider: ^2.1.1
+  open_file: ^3.3.2
   #file_picker_linux: ^6.0.1
 
 dev_dependencies:
